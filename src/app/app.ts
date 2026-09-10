@@ -45,10 +45,14 @@ export class App {
 	protected readonly overlayMode = signal(false);
 
 	/**
-	 * Фон главной страницы — всегда цвет оверлея (подложка для превью бара и настроек).
-	 * Прозрачность самого бара задаётся отдельной настройкой transparentBg в overlay-bar.
+	 * Фон главной страницы: прозрачный при включённом «Прозрачном фоне», иначе цвет оверлея.
+	 * При transparentBg подстраница показывает тёмный фон Taiga (#222), а не белый — тёмная
+	 * палитра форсируется в _theme.scss.
 	 */
-	protected readonly appBackground = computed(() => this.settingsStore.overlay().overlayColor);
+	protected readonly appBackground = computed(() => {
+		const overlay = this.settingsStore.overlay();
+		return overlay.transparentBg ? 'transparent' : overlay.overlayColor;
+	});
 
 	private readonly destroyRef = inject(DestroyRef);
 	private readonly document = inject(DOCUMENT);
