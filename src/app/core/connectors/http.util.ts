@@ -12,7 +12,7 @@ export async function httpGetText(url: string): Promise<string> {
 }
 
 export async function httpGetJson(url: string): Promise<unknown> {
-	const response = await fetch(url);
+	const response = await fetch(url, { cache: 'no-store' });
 	if (!response.ok) {
 		throw new Error(`HTTP ${response.status} для ${url}`);
 	}

@@ -16,20 +16,21 @@
 	}
 
 	@if (hasArtifact()) {
-		<button
-			tuiButton
-			type="button"
-			class="download-button"
-			[iconStart]="'@tui.download'"
-			[disabled]="!downloadUrl()"
-			(click)="onDownload()"
-		>
-			{{
-				latestVersion() !== null
-					? `Скачать для ${osLabel()} v${latestVersion()?.version}`
-					: `Скачать для ${osLabel()}`
-			}}
-		</button>
+		@for (artifact of artifacts(); track artifact.url) {
+			<button
+				tuiButton
+				type="button"
+				class="download-button"
+				[iconStart]="'@tui.download'"
+				(click)="onDownload(artifact)"
+			>
+				{{
+					latestVersion() !== null
+						? `Скачать ${artifact.format} для ${osLabel()} v${latestVersion()?.version}`
+						: `Скачать ${artifact.format} для ${osLabel()}`
+				}}
+			</button>
+		}
 	} @else if (latestVersion() !== null) {
 		<p class="status status-warn">Сборки для {{ osLabel() }} пока нет — сборка появится позже.</p>
 	}

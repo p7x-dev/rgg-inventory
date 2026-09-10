@@ -3,6 +3,8 @@ import { httpGetJson } from '@core/connectors/http.util';
 import {
 	detectReleaseOs,
 	isReleaseInfo,
+	releaseArtifactFormat,
+	type ReleaseArtifact,
 	type ReleaseInfo,
 	releaseOsLabel,
 } from '@core/models/release.model';
@@ -85,6 +87,30 @@ function readAssetUrl(assets: unknown, mode: 'prefer' | 'first'): string | null 
  * Релизы приложения. Источники артефактов: манифест сервера /downloads/latest.json
  * и GitHub Releases (публичный репо, API без токена). Плюс статус последней сборки CI.
  */
+/** Собирает список артефактов под текущую ОС из манифеста или GitHub-фолбэка. */
+function readArtifacts(
+	latest: ReleaseInfo | null,
+	githubDownloadUrl: string | null,
+): ReleaseArtifact[] {
+	const os = detectReleaseOs();
+	const fromManifest = latest && os ? latest.files[os] : undefined;
+	const urls =
+		typeof fromManifest === 'string'
+			? [fromManifest]
+			: Array.isArray(fromManifest)
+				? [...fromManifest]
+				: [];
+	if (urls.length > 0) {
+		return urls.map((url) => ({
+			format: releaseArtifactFormat(url),
+			url: url.startsWith('http://') || url.startsWith('https://') ? url : `${RELEASES_BASE_URL}${url}`,
+		}));
+	}
+	return githubDownloadUrl
+		? [{ format: releaseArtifactFormat(githubDownloadUrl), url: githubDownloadUrl }]
+		: [];
+}
+
 export const ReleaseStore = signalStore(
 	{ providedIn: 'root' },
 	withState<ReleaseState>(initialState),
@@ -95,28 +121,18 @@ export const ReleaseStore = signalStore(
 		availableVersion: computed(() => store.latest()?.version ?? store.githubVersion()),
 		/** Готова ли мета-информация о последнем релизе. */
 		isAvailable: computed(() => store.latest() !== null || store.githubVersion() !== null),
+		/** Список артефактов под текущую ОС (манифест сервера или GitHub). */
+		artifacts: computed<ReleaseArtifact[]>(() =>
+			readArtifacts(store.latest(), store.githubDownloadUrl()),
+		),
 		/** Есть ли артефакт под текущую ОС (манифест сервера или GitHub). */
-		hasArtifact: computed(() => {
-			const latest = store.latest();
-			const os = detectReleaseOs();
-			if (latest && os && latest.files[os]) {
-				return true;
-			}
-			return store.githubDownloadUrl() !== null;
-		}),
-		/** Полный URL артефакта под текущую ОС (или пустая строка). */
-		downloadUrl: computed(() => {
-			const latest = store.latest();
-			const os = detectReleaseOs();
-			if (latest && os && latest.files[os]) {
-				const file = latest.files[os];
-				if (file.startsWith('http://') || file.startsWith('https://')) {
-					return file;
-				}
-				return `${RELEASES_BASE_URL}${file}`;
-			}
-			return store.githubDownloadUrl() ?? '';
-		}),
+		hasArtifact: computed(
+			() => readArtifacts(store.latest(), store.githubDownloadUrl()).length > 0,
+		),
+		/** Полный URL первого артефакта под текущую ОС (или пустая строка). */
+		downloadUrl: computed(
+			() => readArtifacts(store.latest(), store.githubDownloadUrl())[0]?.url ?? '',
+		),
 		/** Есть ли новая версия относительно текущей установленной (OTA для Tauri). */
 		hasUpdate: computed(() => {
 			const version = store.latest()?.version ?? store.githubVersion();

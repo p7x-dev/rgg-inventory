@@ -3,12 +3,23 @@ export type ReleaseOsId = 'windows' | 'macos' | 'linux';
 
 const RELEASE_OS_IDS: readonly ReleaseOsId[] = ['windows', 'macos', 'linux'];
 
+/**
+ * Ссылка на артефакт: может быть одна (Windows/macOS) или несколько форматов
+ * (Linux — AppImage, rpm, deb). Для каждого элемента возвращаем одну ссылку.
+ */
+export interface ReleaseArtifact {
+	/** Формат/тип артефакта: 'AppImage', 'deb', 'rpm', 'exe', 'dmg' и т.п. */
+	format: string;
+	/** URL для скачивания (относительный /downloads/... или прямой https://...). */
+	url: string;
+}
+
 /** URL префикс для относительных ссылок в манифесте релиза. */
 export interface ReleaseInfo {
 	/** Версия приложения в манифесте, например '0.1.0'. */
 	version: string;
-	/** Ссылка на артефакт для каждой ОС (относительные пути). */
-	files: Partial<Record<ReleaseOsId, string>>;
+	/** Ссылка на артефакт(ы) для каждой ОС (относительные пути или прямые ссылки). */
+	files: Partial<Record<ReleaseOsId, string | readonly string[]>>;
 	/** Дата сборки/публикации в ISO. */
 	updatedAt: string;
 }
@@ -22,16 +33,29 @@ function readString(record: Record<string, unknown>, key: string, fallback: stri
 	return typeof value === 'string' && value.trim() !== '' ? value : fallback;
 }
 
-function readFiles(value: unknown): Partial<Record<ReleaseOsId, string>> {
+const ACCEPTED_URL = (url: string): boolean =>
+	url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://');
+
+/** Читает одну ссылку или список ссылок для ОС, возвращает [] когда нет. */
+function readOsUrls(value: unknown): string[] {
+	if (typeof value === 'string') {
+		return ACCEPTED_URL(value) ? [value] : [];
+	}
+	if (!Array.isArray(value)) {
+		return [];
+	}
+	return value.filter((url): url is string => typeof url === 'string' && ACCEPTED_URL(url));
+}
+
+function readFiles(value: unknown): Partial<Record<ReleaseOsId, string[]>> {
 	if (!isRecord(value)) {
 		return {};
 	}
-	const files: Partial<Record<ReleaseOsId, string>> = {};
+	const files: Partial<Record<ReleaseOsId, string[]>> = {};
 	for (const os of RELEASE_OS_IDS) {
-		const url = readString(value, os, '');
-		// Принимаем и относительные пути (/downloads/…), и прямые ссылки (https://…).
-		if (url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://')) {
-			files[os] = url;
+		const urls = readOsUrls(value[os]);
+		if (urls.length > 0) {
+			files[os] = urls;
 		}
 	}
 	return files;
@@ -44,11 +68,38 @@ export function isReleaseInfo(value: unknown): value is ReleaseInfo {
 	}
 	const version = readString(value, 'version', '');
 	const updatedAt = readString(value, 'updatedAt', '');
-	const files = readFiles(value['files']);
 	if (!version || !updatedAt) {
 		return false;
 	}
-	return isRecord(value['files']) ? Object.keys(files).length === Object.keys(value['files']).length : true;
+	const files = readFiles(value['files']);
+	return isRecord(value['files'])
+		? Object.keys(files).length === Object.keys(value['files']).length
+		: true;
+}
+
+/** Расшифровывает формат артефакта по имени/URL (AppImage, deb, rpm, exe, dmg). */
+export function releaseArtifactFormat(urlOrName: string): string {
+	const lower = urlOrName.toLowerCase();
+	if (lower.includes('.appimage')) {
+		return 'AppImage';
+	}
+	if (lower.includes('.deb')) {
+		return 'deb';
+	}
+	if (lower.includes('.rpm')) {
+		return 'rpm';
+	}
+	if (lower.includes('.dmg')) {
+		return 'dmg';
+	}
+	if (lower.includes('-setup.exe') || lower.includes('.exe')) {
+		return 'exe';
+	}
+	if (lower.includes('.msi')) {
+		return 'msi';
+	}
+	const match = /\.([a-z0-9]{2,6})(?:$|\?)/.exec(lower);
+	return match ? match[1] : 'сборка';
 }
 
 /**

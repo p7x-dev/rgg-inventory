@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { releaseOsLabel } from '@core/models/release.model';
+import { releaseOsLabel, type ReleaseArtifact } from '@core/models/release.model';
 import { ReleaseStore } from '@core/stores/release.store';
 import { TuiButton } from '@taiga-ui/core';
 
@@ -17,7 +17,7 @@ export class AppSettingsComponent {
 
 	protected readonly error = this.releaseStore.error;
 
-	protected readonly downloadUrl = this.releaseStore.downloadUrl;
+	protected readonly artifacts = this.releaseStore.artifacts;
 
 	protected readonly hasArtifact = this.releaseStore.hasArtifact;
 
@@ -31,11 +31,7 @@ export class AppSettingsComponent {
 		void this.releaseStore.refresh();
 	}
 
-	protected onDownload(): void {
-		const url = this.downloadUrl();
-		if (!url) {
-			return;
-		}
-		window.open(url, '_blank', 'noopener');
+	protected onDownload(artifact: ReleaseArtifact): void {
+		window.open(artifact.url, '_blank', 'noopener');
 	}
 }
