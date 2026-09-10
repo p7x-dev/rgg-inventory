@@ -40,6 +40,47 @@ pnpm tauri dev             # dev-режим в окне
 pnpm tauri build           # релизные пакеты в src-tauri/target/release/bundle
 ```
 
+## Релизы (GitHub Actions)
+
+Автосборка нативных приложений и публикация релизов — в `.github/workflows/release.yml`.
+
+### Запуск
+
+- **По тегу:** `git tag v0.2.0 && git push origin v0.2.0` — соберётся и выложится релиз `v0.2.0`.
+- **Вручную:** вкладка **Actions → Build & Release → Run workflow**, можно указать версию и черновик.
+
+Workflow собирает нативных клиентов на раннерах GitHub по целевой ОС:
+
+| ОС           | Раннер            | Артефакты                     |
+| ------------ | ----------------- | ----------------------------- |
+| Windows      | `windows-latest`  | `-setup.exe` (NSIS)           |
+| macOS        | `macos-latest`    | `.dmg`                        |
+| Linux        | `ubuntu-latest`   | `.AppImage`, `.deb`, `.rpm`   |
+
+Собранные пакеты попадают в **GitHub Release** и (если настроен `DEPLOY_SSH_KEY`)
+загружаются на сервер в `/var/www/rgg-inv-downloads/`, после чего перегенерируется
+`latest.json` — манифест, из которого веб-приложение узнаёт про последнюю версию
+и показывает кнопку «Скачать» под операционную систему пользователя.
+
+### Секреты репозитория (Settings → Secrets and variables → Actions)
+
+| Secret          | Назначение                                                                      |
+| --------------- | ------------------------------------------------------------------------------- |
+| `DEPLOY_SSH_KEY`| Приватный ключ `~/.ssh/p7x-deploy` (deploy key) — нужен для заливки на сервер.  |
+| `DEPLOY_HOST`   | (необязательно, по умолчанию `62.113.114.50`)                                   |
+| `DEPLOY_USER`   | (необязательно, по умолчанию `root`)                                            |
+| `GITHUB_TOKEN`  | создаётся автоматически — для публикации Release (раздел `permissions`).        |
+
+Если `DEPLOY_SSH_KEY` не задан, сборка и релиз на GitHub работают, но файлы на
+прод-сервер не заливаются (кнопка «Скачать» покажет «сборки нет»).
+
+### Что делает скрипт make-manifest.mjs
+
+`node scripts/make-manifest.mjs <папка> <версия>` берёт из папки сборки по одному
+предпочтительному артефакту на ОС (exe / dmg / AppImage, fallback deb/rpm) и пишет
+`latest.json` в нужном формате `{ version, files: {windows, macos, linux}, updatedAt }`,
+который ожидает фронтенд.
+
 Требования: Node 20+, pnpm, Rust (для Tauri), на Linux — WebKitGTK и системные пакеты из
 документации Tauri.
 
