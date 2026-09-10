@@ -29,7 +29,8 @@ function readFiles(value: unknown): Partial<Record<ReleaseOsId, string>> {
 	const files: Partial<Record<ReleaseOsId, string>> = {};
 	for (const os of RELEASE_OS_IDS) {
 		const url = readString(value, os, '');
-		if (url.startsWith('/')) {
+		// Принимаем и относительные пути (/downloads/…), и прямые ссылки (https://…).
+		if (url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://')) {
 			files[os] = url;
 		}
 	}

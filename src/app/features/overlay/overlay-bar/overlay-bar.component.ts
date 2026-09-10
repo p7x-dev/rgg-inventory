@@ -98,8 +98,8 @@ export class OverlayBarComponent {
 
 	protected readonly pipEnabled = computed(() => this.overlaySettings().pipEnabled);
 
-	// Фон бара всегда свой (цвет оверлея) — прозрачность страницы его не трогает.
-	protected readonly overlayBackground = computed(() => this.overlaySettings().overlayColor);
+	// Фон бара — тайговский тёмный #222 (как у страницы): блоки внутри выделяются тенями.
+	protected readonly overlayBackground = computed(() => 'var(--inv-bar-bg, #222)');
 
 	protected readonly barHidden = computed(() => !this.hotkeyStore.barOn());
 

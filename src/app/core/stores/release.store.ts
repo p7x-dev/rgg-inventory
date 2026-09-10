@@ -109,7 +109,11 @@ export const ReleaseStore = signalStore(
 			const latest = store.latest();
 			const os = detectReleaseOs();
 			if (latest && os && latest.files[os]) {
-				return `${RELEASES_BASE_URL}${latest.files[os]}`;
+				const file = latest.files[os];
+				if (file.startsWith('http://') || file.startsWith('https://')) {
+					return file;
+				}
+				return `${RELEASES_BASE_URL}${file}`;
 			}
 			return store.githubDownloadUrl() ?? '';
 		}),
@@ -120,6 +124,15 @@ export const ReleaseStore = signalStore(
 		}),
 	})),
 	withMethods((store) => ({
+		/**
+		 * Обновить манифест с сервера через GitHub (эндпоинт /downloads/refresh пересобирает
+		 * latest.json из последнего релиза GitHub), затем перечитать манифест и статусы.
+		 */
+		async refresh(): Promise<void> {
+			await httpGetJson(`${RELEASES_BASE_URL}/downloads/refresh`);
+			await this.check();
+		},
+
 		/** Повторная проверка: манифест сервера + GitHub Releases + статус сборки. */
 		async check(): Promise<void> {
 			patchState(store, { loading: true, error: null });

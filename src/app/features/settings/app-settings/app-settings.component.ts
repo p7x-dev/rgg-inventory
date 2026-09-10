@@ -28,7 +28,7 @@ export class AppSettingsComponent {
 	protected readonly osLabel = (): string => releaseOsLabel(this.os());
 
 	protected onCheck(): void {
-		void this.releaseStore.check();
+		void this.releaseStore.refresh();
 	}
 
 	protected onDownload(): void {
