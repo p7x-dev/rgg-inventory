@@ -126,7 +126,7 @@ jobs:
         run: node scripts/make-manifest.mjs bundles "${{ steps.ver.outputs.version }}"
 
       - name: Upload bundles to server
-        if: ${{ secrets.DEPLOY_SSH_KEY != '' }}
+        if: ${{ env.DEPLOY_KEY != '' }}
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || '62.113.114.50' }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
@@ -141,7 +141,7 @@ jobs:
           scp bundles/latest.json "$DEPLOY_USER@$DEPLOY_HOST:/var/www/rgg-inv-downloads/latest.json"
 
       - name: Fix server file permissions
-        if: ${{ secrets.DEPLOY_SSH_KEY != '' }}
+        if: ${{ env.DEPLOY_KEY != '' }}
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || '62.113.114.50' }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
