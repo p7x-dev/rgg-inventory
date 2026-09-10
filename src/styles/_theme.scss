@@ -27,3 +27,32 @@
 	--tui-background-elevation-1: var(--inv-popup-bg, #1a1428);
 	--tui-background-elevation-2: var(--inv-popup-bg, #1a1428);
 }
+
+// Taiga на системах со светлой темой применяет светлую палитру (фон #fff), из-за
+// чего страница становится белой. Форсируем тёмную палитру: берём оригинальные
+// токены Taiga dark (#222 и т.д.), а не почти чёрный #120d1c — на них тени видны.
+:root,
+[tuiTheme='light'],
+[tuiTheme='dark'] {
+	color-scheme: dark;
+	--tui-background-base: #222;
+	--tui-background-base-alt: #333;
+	--tui-background-neutral-1: rgba(255, 255, 255, 0.08);
+	--tui-background-neutral-1-hover: rgba(255, 255, 255, 0.16);
+	--tui-background-neutral-1-pressed: rgba(255, 255, 255, 0.24);
+	--tui-background-neutral-2: rgba(255, 255, 255, 0.24);
+	--tui-background-neutral-2-hover: rgba(255, 255, 255, 0.32);
+	--tui-background-neutral-2-pressed: rgba(255, 255, 255, 0.4);
+	--tui-background-elevation-1: #292929;
+	--tui-background-elevation-2: #2f2f2f;
+	--tui-background-elevation-3: #373737;
+	--tui-text-primary: rgba(255, 255, 255, 1);
+	--tui-text-secondary: rgba(255, 255, 255, 0.72);
+	--tui-text-tertiary: rgba(255, 255, 255, 0.6);
+	--tui-border-normal: rgba(255, 255, 255, 0.14);
+	--tui-border-hover: rgba(255, 255, 255, 0.6);
+	--tui-border-focus: rgba(255, 255, 255, 0.64);
+
+	// Тени и тёмная палитра Taiga используют светлые значения темы (rgba(0,0,0,.1…)),
+	// но на фоне #222 они уже видны — усиление не требуется.
+}

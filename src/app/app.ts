@@ -44,11 +44,11 @@ export class App {
 	/** `true`, когда открыт OBS-виджет (хэш `#/overlay` или браузерный источник OBS): показываем только оверлей. */
 	protected readonly overlayMode = signal(false);
 
-	/** Фон главной страницы: прозрачный при включённом «Прозрачном фоне», иначе цвет оверлея. */
-	protected readonly appBackground = computed(() => {
-		const overlay = this.settingsStore.overlay();
-		return overlay.transparentBg ? 'transparent' : overlay.overlayColor;
-	});
+	/**
+	 * Фон главной страницы — всегда цвет оверлея (подложка для превью бара и настроек).
+	 * Прозрачность самого бара задаётся отдельной настройкой transparentBg в overlay-bar.
+	 */
+	protected readonly appBackground = computed(() => this.settingsStore.overlay().overlayColor);
 
 	private readonly destroyRef = inject(DestroyRef);
 	private readonly document = inject(DOCUMENT);
@@ -69,10 +69,9 @@ export class App {
 			.subscribe((next) => this.overlayMode.set(next));
 
 		// В OBS-режиме убираем фон у body, чтобы браузерный источник был прозрачным.
-		// Прозрачность работает и на главной странице, когда включён «Прозрачный фон».
+		// Прозрачность самого бара (transparentBg) на главную страницу не влияет.
 		effect(() => {
-			const transparent = this.settingsStore.overlay().transparentBg;
-			this.document.body.classList.toggle('obs-overlay', this.overlayMode() || transparent);
+			this.document.body.classList.toggle('obs-overlay', this.overlayMode());
 		});
 
 		// Фон всплывающих поверхностей (дропдауны, попапы, обучалка) следует за цветом оверлея,

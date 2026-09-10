@@ -98,9 +98,8 @@ export class OverlayBarComponent {
 
 	protected readonly pipEnabled = computed(() => this.overlaySettings().pipEnabled);
 
-	protected readonly overlayBackground = computed(() =>
-		this.overlaySettings().transparentBg ? 'transparent' : this.overlaySettings().overlayColor,
-	);
+	// Фон бара всегда свой (цвет оверлея) — прозрачность страницы его не трогает.
+	protected readonly overlayBackground = computed(() => this.overlaySettings().overlayColor);
 
 	protected readonly barHidden = computed(() => !this.hotkeyStore.barOn());
 
