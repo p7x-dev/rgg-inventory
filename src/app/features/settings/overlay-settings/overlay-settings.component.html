@@ -1,0 +1,83 @@
+<section class="section">
+	<h2 class="section-title">Оверлей</h2>
+
+	<app-settings-slider
+		label="Сколько слотов в ряду"
+		[value]="overlay().cols"
+		[min]="1"
+		[max]="18"
+		[step]="1"
+		(valueChange)="setCols($event)"
+	/>
+	<app-settings-slider
+		label="Размер слота"
+		[value]="overlay().slotSize"
+		[min]="32"
+		[max]="96"
+		[step]="2"
+		unit="px"
+		(valueChange)="setSlotSize($event)"
+	/>
+	<app-settings-slider
+		label="Как часто обновлять данные"
+		[value]="overlay().refreshIntervalSec"
+		[min]="15"
+		[max]="600"
+		[step]="15"
+		unit="с"
+		(valueChange)="setRefreshInterval($event)"
+	/>
+
+	<div class="switches">
+		<app-settings-switch
+			label="Прозрачный фон"
+			hint="Убери фон целиком — виден только сам бар. Нужно для OBS."
+			[checked]="overlay().transparentBg"
+			(checkedChange)="setTransparentBg($event)"
+		/>
+		@if (!overlay().transparentBg) {
+			<app-settings-color
+				label="Цвет фона"
+				hint="Цвет подложки за баром, если фон не прозрачный"
+				[value]="overlay().overlayColor"
+				(valueChange)="setOverlayColor($event)"
+			/>
+		}
+		<app-settings-switch
+			label="Показывать таймер"
+			hint="Секундомер или обратный отсчёт рядом с инвентарём"
+			[checked]="overlay().showTimer"
+			(checkedChange)="setShowTimer($event)"
+		/>
+		<app-settings-switch
+			label="Монетки и слёзы"
+			hint="Показать валюту персонажа (монетки и слёзы) рядом с ником"
+			[checked]="overlay().showCurrencies"
+			(checkedChange)="setShowCurrencies($event)"
+		/>
+		<app-settings-switch
+			label="Поверх всех окон"
+			hint="Окошко не прячется за играми; появляется кнопка OBS"
+			[checked]="overlay().pipEnabled"
+			(checkedChange)="setPipEnabled($event)"
+		/>
+		<app-settings-switch
+			label="Обучалка"
+			hint="Пошаговые подсказки по интерфейсу при первом запуске"
+			[checked]="overlay().tutorialEnabled"
+			(checkedChange)="setTutorialEnabled($event)"
+		/>
+		@if (!overlay().tutorialEnabled) {
+			<button
+				tuiButton
+				type="button"
+				appearance="outline"
+				size="s"
+				class="tutorial-restart"
+				(click)="setTutorialEnabled(true)"
+			>
+				Показать обучалку заново
+			</button>
+		}
+	</div>
+</section>

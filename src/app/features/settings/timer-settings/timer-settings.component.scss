@@ -1,0 +1,91 @@
+.section {
+	display: flex;
+	gap: 16px;
+	flex-direction: column;
+	padding: 20px;
+	border-radius: 16px;
+	background: var(--tui-background-neutral-1, rgba(255, 255, 255, 0.05));
+}
+
+.section-title {
+	margin: 0;
+	font-weight: 600;
+	font-size: 16px;
+}
+
+.block {
+	display: flex;
+	gap: 12px;
+	flex-direction: column;
+}
+
+.block-title {
+	margin: 0;
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.hint {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.5;
+	opacity: 0.7;
+}
+
+.field {
+	width: 100%;
+}
+
+.actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.preset-row {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.timer-preview {
+	display: inline-flex;
+	gap: 10px;
+	align-items: center;
+	padding: 8px 14px;
+	border-radius: 10px;
+	background: var(--tui-background-neutral-2, rgba(255, 255, 255, 0.08));
+}
+
+.timer-preview-time {
+	color: var(--inv-text-muted);
+	font-size: 24px;
+	letter-spacing: 0.04em;
+	font-variant-numeric: tabular-nums;
+}
+
+.timer-preview-time_active {
+	color: var(--inv-accent);
+}
+
+.countdown-fields {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.countdown-field {
+	width: 110px;
+}
+
+.status-ok {
+	margin: 0;
+	color: #7cd992;
+	font-size: 13px;
+}
+
+.status-error {
+	margin: 0;
+	color: #ff7d7d;
+	font-size: 13px;
+}

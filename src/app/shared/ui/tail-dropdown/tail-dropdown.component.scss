@@ -1,0 +1,86 @@
+:host {
+	--tui-from: translateY(-1rem);
+	position: absolute;
+	display: flex;
+	box-sizing: border-box;
+	pointer-events: auto;
+	isolation: isolate;
+}
+
+/* Пока якорь не выставил позицию — ящик скрыт (как оригинальный TuiDropdown). */
+:host:not([style*='top']) {
+	visibility: hidden;
+}
+
+:host.tui-enter,
+:host.tui-leave {
+	pointer-events: none;
+	animation-name: tuiFade, tuiSlide;
+	animation-duration: calc(var(--tui-duration) / 2);
+}
+
+/*
+ * Общая «поверхность» баббла: ящик + хвост рисуются одной тенью (drop-shadow),
+ * поэтому хвост выглядит продолжением ящика, а не приклеенной фигурой.
+ * Именно так сделаны хвосты в нативных дропдаунах.
+ */
+.tail-dropdown__surface {
+	position: relative;
+	display: flex;
+	flex: 1;
+	filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.3));
+	min-block-size: 0;
+}
+
+.tail-dropdown__box {
+	position: relative;
+	display: flex;
+	flex: 1;
+	overflow: hidden;
+	box-sizing: border-box;
+	border: none;
+	border-radius: var(--tui-radius-m, 0.375rem);
+
+	/* Непрозрачная поверхность дропдауна — совпадает с контентом (settings-popover). */
+	background: rgb(30, 20, 50);
+	color: #f3edff;
+	min-block-size: 0;
+	inline-size: max-content;
+	max-inline-size: 100%;
+}
+
+.tail-dropdown__box:has(tui-data-list[data-size='l']) {
+	border-radius: var(--tui-radius-l, 0.5rem);
+}
+
+.tail-dropdown__scroll {
+	flex: 1;
+	min-block-size: 0;
+}
+
+/* Паддинг для примитивного (текстового) контента. */
+.tail-dropdown__primitive {
+	padding: 1rem;
+}
+
+.tail-dropdown__tail {
+	position: absolute;
+	z-index: 1;
+	overflow: visible;
+	box-sizing: border-box;
+
+	/* Тот же 100%-непрозрачный цвет, что у ящика дропдауна. */
+	color: rgb(45, 32, 65);
+	pointer-events: none;
+	inline-size: 14px;
+	block-size: 11px;
+}
+
+.tail-dropdown__tail path {
+	fill: currentcolor;
+}
+
+/* Хвост под ящиком — дропдаун открыт над якорем, носик смотрит вниз. */
+.tail-dropdown__tail._bottom {
+	transform: rotate(180deg);
+}

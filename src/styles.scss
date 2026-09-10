@@ -1,0 +1,40 @@
+/* Глобальные стили приложения. Токены темы задаются через CSS-переменные,
+   которые управляются ThemeService (встроенные темы или тема из картинки). */
+@use 'styles/theme';
+
+*,
+*:before,
+*:after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	overflow: hidden;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background: var(--tui-background, #000);
+	color: var(--tui-text-primary, #fff);
+	font-family: var(--tui-font-text, sans-serif);
+	-webkit-font-smoothing: antialiased;
+}
+
+/* OBS-виджет: body прозрачный, чтобы браузерный источник не закрашивал экран. */
+body.obs-overlay {
+	background: transparent;
+
+	/* Taiga красит весь вьюпорт через border-image (--tui-background-base: #fff).
+	   В OBS этот слой убираем, иначе страница показывает сплошной белый фон. */
+	tui-root {
+		border-image: none;
+	}
+}
+
+app-root {
+	display: block;
+	height: 100%;
+}

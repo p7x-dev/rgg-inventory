@@ -1,0 +1,23 @@
+<div class="header">
+	<span class="header-title">{{ title() }}</span>
+	@if (showCurrencies()) {
+		<span class="header-currencies">
+			<span class="header-currency" title="Монетки">
+				@if (coinIcon(); as icon) {
+					<img class="header-currency-icon header-currency-icon-custom" [src]="icon" alt="Монетки" />
+				} @else {
+					<tui-icon icon="@tui.coins" class="header-currency-icon" />
+				}
+				{{ coinsText() }}
+			</span>
+			<span class="header-currency header-currency-tears" title="Слёзы">
+				@if (tearIcon(); as icon) {
+					<img class="header-currency-icon header-currency-icon-custom" [src]="icon" alt="Слёзы" />
+				} @else {
+					<tui-icon icon="@tui.droplet" class="header-currency-icon" />
+				}
+				{{ tearsText() }}
+			</span>
+		</span>
+	}
+</div>

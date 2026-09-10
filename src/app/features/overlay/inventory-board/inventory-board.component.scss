@@ -1,0 +1,40 @@
+.board {
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(var(--inv-cols, 9), var(--inv-slot-size));
+	grid-auto-rows: var(--inv-slot-size);
+	gap: var(--inv-slot-gap);
+	width: fit-content;
+	padding: var(--inv-padding);
+	border-radius: var(--inv-border-radius);
+	background: var(--inv-board-bg, var(--inv-background));
+	box-shadow: var(--inv-shadow);
+}
+
+.board-design {
+	display: block;
+	width: auto;
+	padding: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.board-background {
+	position: absolute;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	inset: 0;
+}
+
+.board-slot {
+	position: absolute;
+}
+
+/* Компактные слоты на маленьких экранах, чтобы 9+ слотов помещались в ширину телефона. */
+@media (width <= 700px) {
+	.board {
+		--inv-slot-size: 32px;
+		--inv-slot-gap: 2px;
+	}
+}

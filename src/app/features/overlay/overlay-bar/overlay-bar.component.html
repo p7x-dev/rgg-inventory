@@ -1,0 +1,59 @@
+@if (error(); as message) {
+	<div class="bar-error" role="alert">{{ message }}</div>
+}
+
+@if (!barHidden()) {
+	<div class="bar" [style.background]="overlayBackground()" [style.--inv-board-bg]="overlayBackground()">
+		<app-overlay-header
+			class="bar-profile"
+			[title]="playerName()"
+			[coins]="coins()"
+			[tears]="tears()"
+			[showCurrencies]="showCurrencies()"
+		/>
+
+		<div class="bar-inventory-block">
+			<app-inventory-board
+				class="bar-inventory"
+				[items]="items()"
+				[designMode]="designMode()"
+				[design]="design()"
+				[cols]="overlaySettings().cols"
+				[visibleRows]="visibleRows()"
+				[selectedIndex]="selectedSlot()"
+				(slotSelect)="setSelectedSlot($event)"
+			/>
+		</div>
+
+		<app-bar-controls
+			class="bar-controls"
+			[showTimer]="showTimer()"
+			[showObs]="pipEnabled()"
+			[showDownload]="true"
+			[settingsMenu]="settingsPopup"
+			[(settingsOpen)]="settingsOpen"
+			(inventoryClick)="openInventory()"
+			(obsClick)="openObsOverlay()"
+		/>
+	</div>
+}
+
+<button
+	tuiButton
+	type="button"
+	appearance="flat"
+	class="bar-settings-fab"
+	aria-label="Настройки"
+	iconStart="@tui.settings"
+	[tuiDropdown]="settingsPopup"
+	[tuiDropdownMaxHeight]="560"
+	[(tuiDropdownOpen)]="settingsOpen"
+></button>
+
+<ng-template #settingsPopup>
+	<app-settings-popover (close)="settingsOpen.set(false)" />
+</ng-template>
+
+<ng-template #inventoryDialog let-completeWith="completeWith">
+	<app-inventory-popover class="tui-backdrop-hidden" (close)="completeWith?.()" />
+</ng-template>

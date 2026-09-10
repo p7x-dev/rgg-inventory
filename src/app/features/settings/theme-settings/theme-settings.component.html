@@ -1,0 +1,136 @@
+<section class="section">
+	<h2 class="section-title">Дизайн</h2>
+
+	<app-theme-presets />
+
+	<div class="colors-block">
+		<h3 class="block-title">Раскраска</h3>
+		<p class="hint">Выберите цвета темы — они сразу применятся к оверлею.</p>
+		<div class="colors">
+			@for (token of colorTokens; track token.key) {
+				<label class="color-item">
+					<span class="color-label">{{ token.label }}</span>
+					<input
+						type="color"
+						class="color-input"
+						[value]="tokenColorPip(token.value())"
+						(input)="onColorChange(token.key, $event)"
+					/>
+				</label>
+			}
+		</div>
+	</div>
+
+	<details class="advanced">
+		<summary class="advanced-title">Расширенная настройка</summary>
+		<div class="advanced-numbers">
+			@for (item of numericTokens; track item.key) {
+				<app-settings-slider
+					[label]="item.label"
+					[value]="tokenNumber(item.key)"
+					[min]="item.min"
+					[max]="item.max"
+					[step]="item.step"
+					[unit]="item.unit"
+					(valueChange)="onNumberChange(item.key, $event)"
+				/>
+			}
+		</div>
+		<div class="advanced-texts">
+			@for (item of textTokens; track item.key) {
+				<tui-textfield>
+					<label>{{ item.label }}</label>
+					<input
+						tuiInput
+						[value]="tokenString(item.key)"
+						[placeholder]="item.placeholder"
+						(input)="onTextChange(item.key, $event)"
+					/>
+				</tui-textfield>
+			}
+		</div>
+	</details>
+
+	<app-theme-assets />
+
+	<div class="design-block">
+		<h3 class="design-title">Дизайн из картинки</h3>
+		<p class="design-hint">
+			Загрузите картинку с готовым дизайном инвентаря — приложение само найдёт сетку слотов, разрежет её на
+			текстуры и перестроит оверлей под картинку.
+		</p>
+		<div class="design-actions">
+			<label class="design-upload">
+				<input
+					#designFile
+					type="file"
+					accept="image/png,image/jpeg,image/webp,image/avif,image/gif"
+					hidden
+					(change)="onDesignFileSelected($event)"
+				/>
+				<button tuiButton type="button" [iconStart]="'@tui.image'" [disabled]="analyzing()" (click)="designFile.click()">
+					{{ analyzing() ? 'Анализирую…' : 'Загрузить дизайн' }}
+				</button>
+			</label>
+			@if (preview()) {
+				<button tuiButton type="button" appearance="flat" (click)="clearDesignPreview()">Отменить</button>
+			}
+		</div>
+
+		<app-settings-switch
+			label="Бета: drag&drop редактирование"
+			hint="Двигайте и меняйте размер слотов на превью перед применением"
+			[checked]="designEditorEnabled()"
+			(checkedChange)="setDesignEditorEnabled($event)"
+		/>
+
+		@if (analysisError(); as message) {
+			<p class="design-error" role="alert">{{ message }}</p>
+		}
+
+		@if (preview(); as result) {
+			<div class="design-preview">
+				@if (designEditorEnabled()) {
+					<app-design-editor
+						[image]="result.layout.image"
+						[width]="result.layout.imageWidth"
+						[height]="result.layout.imageHeight"
+						[rects]="editorRects()"
+						(rectsChange)="onEditorRectsChange($event)"
+					/>
+				} @else {
+					<div
+						class="design-preview-image"
+						[style.background-image]="'url(' + result.layout.image + ')'"
+						[style.aspect-ratio]="result.layout.imageWidth + ' / ' + result.layout.imageHeight"
+					>
+						@for (slot of result.layout.slots; track slot.x + '-' + slot.y) {
+							<div
+								class="design-preview-slot"
+								[style.left.%]="(slot.x / result.layout.imageWidth) * 100"
+								[style.top.%]="(slot.y / result.layout.imageHeight) * 100"
+								[style.width.%]="(slot.width / result.layout.imageWidth) * 100"
+								[style.height.%]="(slot.height / result.layout.imageHeight) * 100"
+							></div>
+						}
+					</div>
+				}
+				<p class="design-preview-info">
+					Найдено слотов: {{ result.layout.slots.length }} ({{ result.layout.rows }} ×
+					{{ result.layout.cols }})
+				</p>
+				<button tuiButton type="button" [iconStart]="'@tui.check'" (click)="applyDesign()">
+					Применить дизайн
+				</button>
+			</div>
+		}
+
+		@if (customDesign() && isCustomTheme()) {
+			<button tuiButton type="button" appearance="flat" [iconStart]="'@tui.trash'" (click)="removeDesign()">
+				Убрать мой дизайн
+			</button>
+		}
+	</div>
+
+	<app-theme-export />
+</section>

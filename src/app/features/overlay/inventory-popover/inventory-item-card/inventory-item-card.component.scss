@@ -1,0 +1,41 @@
+.item {
+	display: flex;
+	gap: 4px;
+	flex-direction: column;
+	align-items: center;
+	padding: 8px 6px;
+	border: 1px solid var(--tui-background-neutral-2, rgba(255, 255, 255, 0.1));
+	border-radius: 10px;
+	background: transparent;
+	cursor: default;
+}
+
+.item-icon {
+	object-fit: contain;
+	width: 44px;
+	height: 44px;
+}
+
+.item-fallback {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	color: var(--inv-text-muted);
+	font-weight: 700;
+	font-size: 22px;
+}
+
+.item-name {
+	max-width: 100%;
+	font-size: 11px;
+	text-align: center;
+	word-break: break-word;
+}
+
+.item-count {
+	color: var(--inv-accent);
+	font-weight: 600;
+	font-size: 12px;
+}

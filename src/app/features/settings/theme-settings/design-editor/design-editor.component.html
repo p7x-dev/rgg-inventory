@@ -1,0 +1,33 @@
+<div
+	#editor
+	class="editor"
+	[style.aspect-ratio]="aspectRatio()"
+	[style.background-image]="'url(' + image() + ')'"
+	(pointermove)="onPointerMove($event)"
+	(pointerup)="onPointerUp($event)"
+>
+	@for (rect of rects(); track rect; let index = $index) {
+		<div
+			class="editor-slot"
+			[class.editor-slot-active]="activeIndex() === index"
+			[style.left.%]="rect.left"
+			[style.top.%]="rect.top"
+			[style.width.%]="rect.width"
+			[style.height.%]="rect.height"
+			(pointerdown)="onPointerDown($event, index)"
+		>
+			<span class="editor-handle editor-handle-nw"></span>
+			<span class="editor-handle editor-handle-ne"></span>
+			<span class="editor-handle editor-handle-sw"></span>
+			<span class="editor-handle editor-handle-se"></span>
+			<span class="editor-handle editor-handle-n"></span>
+			<span class="editor-handle editor-handle-s"></span>
+			<span class="editor-handle editor-handle-w"></span>
+			<span class="editor-handle editor-handle-e"></span>
+		</div>
+	}
+
+	@if (rects().length === 0) {
+		<p class="editor-empty">Нет слотов — редактор нечего править.</p>
+	}
+</div>

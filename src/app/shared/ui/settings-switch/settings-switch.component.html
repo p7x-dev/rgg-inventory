@@ -1,0 +1,9 @@
+<label class="switch-row">
+	<span class="switch-row-text">
+		<span class="switch-row-label">{{ label() }}</span>
+		@if (hint(); as hint) {
+			<span class="switch-row-hint">{{ hint }}</span>
+		}
+	</span>
+	<input tuiSwitch type="checkbox" [formControl]="control" />
+</label>

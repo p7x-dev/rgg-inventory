@@ -1,0 +1,45 @@
+<div class="settings-page">
+	<header class="settings-header">
+		<div class="settings-header-title">
+			<tui-icon icon="@tui.backpack" class="settings-header-logo" />
+			<h1>RGG Inventory</h1>
+		</div>
+		<button tuiButton type="button" appearance="flat" [iconStart]="'@tui.eye'"> Открыть оверлей </button>
+	</header>
+
+	<nav class="settings-tabs" role="tablist" aria-label="Разделы настроек">
+		@for (tab of tabs; track tab) {
+			<button
+				tuiButton
+				type="button"
+				[appearance]="activeTab() === tab ? 'primary' : 'flat'"
+				class="settings-tab"
+				role="tab"
+				[attr.aria-selected]="activeTab() === tab"
+				(click)="selectTab(tab)"
+			>
+				{{ tabLabels[tab] }}
+			</button>
+		}
+	</nav>
+
+	<main class="settings-content">
+		@switch (activeTab()) {
+			@case ('source') {
+				<app-source-settings />
+			}
+			@case ('overlay') {
+				<app-overlay-settings />
+			}
+			@case ('theme') {
+				<app-theme-settings />
+			}
+			@case ('icons') {
+				<app-icon-settings />
+			}
+			@case ('timer') {
+				<app-timer-settings />
+			}
+		}
+	</main>
+</div>

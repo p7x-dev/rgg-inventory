@@ -1,0 +1,20 @@
+<label class="color-row">
+	<span class="color-row-header">
+		<span class="color-row-label">{{ label() }}</span>
+		<span class="color-row-value">{{ value() }}</span>
+	</span>
+	<span class="color-row-control">
+		<input
+			class="color-input"
+			type="color"
+			[value]="value()"
+			(input)="onInput($event)"
+			(change)="onInput($event)"
+			[attr.aria-label]="label()"
+		/>
+		<span class="color-swatch" [style.background]="value()"></span>
+	</span>
+	@if (hint()) {
+		<span class="color-row-hint">{{ hint() }}</span>
+	}
+</label>

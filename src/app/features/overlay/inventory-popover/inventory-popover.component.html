@@ -1,0 +1,20 @@
+<div class="popover">
+	<header class="popover-header">
+		<tui-icon icon="@tui.backpack" class="popover-header-icon" />
+		<h2 class="popover-header-title">{{ playerName() }} — инвентарь</h2>
+		<span class="popover-count">{{ totalCount() }}</span>
+		<button tuiButton type="button" appearance="flat" iconStart="@tui.x" class="popover-close" aria-label="Закрыть" (click)="onClose()"></button>
+	</header>
+
+	<app-inventory-search-bar [(query)]="query" [(sortMode)]="sortMode" [(sortAsc)]="sortAsc" />
+
+	<div class="popover-body">
+		@if (totalCount() === 0) {
+			<p class="empty">Ничего не найдено</p>
+		} @else {
+			@for (group of groups(); track group.id) {
+				<app-inventory-category-group [label]="group.label" [items]="group.items" />
+			}
+		}
+	</div>
+</div>

@@ -1,0 +1,23 @@
+.popover-header {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--tui-background-neutral-2, rgba(255, 255, 255, 0.08));
+}
+
+.popover-header-icon {
+	color: var(--inv-accent);
+	font-size: 20px;
+}
+
+.popover-header-title {
+	flex: 1;
+	margin: 0;
+	font-weight: 600;
+	font-size: 17px;
+}
+
+.popover-close {
+	font-size: 15px;
+}

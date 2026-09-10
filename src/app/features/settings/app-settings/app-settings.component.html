@@ -1,0 +1,56 @@
+<section class="section">
+	<h2 class="section-title">Приложение</h2>
+	<p class="section-subtitle">Десктопная версия для Windows, macOS и Linux — окно поверх игры</p>
+
+	<p class="hint">
+		Версия 0.1.0. Если выйдет новая сборка — она появится ниже вместе с кнопкой
+		«Скачать». Скачивай архив, распакуй и запусти приложение.
+	</p>
+
+	@if (os(); as osId) {
+		<p class="os">
+			Твоя система: <strong>{{ osLabel() }}</strong>
+		</p>
+	} @else {
+		<p class="os">Не удалось определить твою операционную систему.</p>
+	}
+
+	@if (hasArtifact()) {
+		<button
+			tuiButton
+			type="button"
+			class="download-button"
+			[iconStart]="'@tui.download'"
+			[disabled]="!downloadUrl()"
+			(click)="onDownload()"
+		>
+			{{
+				latestVersion() !== null
+					? `Скачать для ${osLabel()} v${latestVersion()?.version}`
+					: `Скачать для ${osLabel()}`
+			}}
+		</button>
+	} @else if (latestVersion() !== null) {
+		<p class="status status-warn">Сборки для {{ osLabel() }} пока нет — сборка появится позже.</p>
+	}
+
+	<button
+		tuiButton
+		type="button"
+		appearance="flat"
+		class="check-button"
+		[iconStart]="'@tui.refresh-ccw'"
+		[disabled]="loading()"
+		(click)="onCheck()"
+	>
+		Проверить обновления
+	</button>
+
+	@if (loading()) {
+		<p class="status">Проверяю…</p>
+	}
+
+	@if (error() !== null) {
+		<p class="status status-error" role="alert">{{ error() }}</p>
+	}
+</section>

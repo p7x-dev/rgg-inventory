@@ -1,0 +1,146 @@
+.slot {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-width: 0;
+	height: 100%;
+	min-height: 0;
+	padding: 0;
+	border: var(--inv-slot-border-width) solid var(--inv-slot-border-color);
+	border-radius: var(--inv-border-radius);
+	background-color: var(--inv-slot-bg);
+	background-position: center;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	color: var(--inv-text);
+	cursor: pointer;
+	transition:
+		background-color 0.15s ease,
+		border-color 0.15s ease,
+		box-shadow 0.15s ease;
+
+	&:hover,
+	&:focus-visible {
+		border-color: var(--inv-accent);
+		box-shadow: 0 0 0 1px var(--inv-accent);
+		outline: none;
+	}
+
+	&:not(.slot-empty):hover,
+	&:not(.slot-empty):focus-visible {
+		background-color: var(--inv-slot-hover-bg);
+	}
+}
+
+.slot-empty {
+	cursor: pointer;
+}
+
+.slot-selected {
+	border-color: var(--inv-accent);
+	background-color: var(--inv-slot-hover-bg);
+	box-shadow: 0 0 0 1px var(--inv-accent), 0 0 12px rgba(0, 0, 0, 0.25);
+}
+
+.slot-selected.slot-empty {
+	background-color: var(--inv-slot-bg);
+}
+
+.slot-icon {
+	object-fit: contain;
+	width: 78%;
+	height: 78%;
+	pointer-events: none;
+	user-select: none;
+}
+
+.slot-fallback {
+	font-weight: 700;
+	font-size: 0.55em;
+	font-family: var(--inv-font);
+	line-height: 1;
+	opacity: 0.85;
+	user-select: none;
+}
+
+.slot-count {
+	position: absolute;
+	right: 2px;
+	bottom: 1px;
+	color: var(--inv-text);
+	font-weight: 700;
+	font-size: 0.45em;
+	line-height: 1;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+	user-select: none;
+}
+
+/* Стилизованный тултип вместо нативного title: тёмное стекло, как у дропдауна. */
+.slot-tooltip {
+	position: absolute;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	z-index: 20;
+	display: flex;
+	gap: 3px;
+	flex-direction: column;
+	min-width: max-content;
+	max-width: 220px;
+	padding: 8px 10px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 12px;
+	background: rgb(30, 20, 50);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+	color: #f3edff;
+	font-size: 13px;
+	font-family: var(--inv-font);
+	line-height: 1.35;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		opacity 0.15s ease,
+		visibility 0.15s ease;
+	translate: -50% 0;
+
+	&:after {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		border: 5px solid transparent;
+		border-top-color: rgb(30, 20, 50);
+		translate: -50% 0;
+	}
+}
+
+.slot:hover .slot-tooltip,
+.slot:focus-visible .slot-tooltip {
+	opacity: 1;
+	visibility: visible;
+}
+
+.slot-tooltip__name {
+	font-weight: 700;
+	font-size: 1.05em;
+	white-space: nowrap;
+}
+
+.slot-tooltip__qty {
+	margin-left: 4px;
+	color: var(--inv-accent);
+	font-weight: 700;
+}
+
+.slot-tooltip__desc {
+	white-space: normal;
+	opacity: 0.85;
+}
+
+.slot-tooltip__note {
+	font-style: italic;
+	white-space: normal;
+	opacity: 0.7;
+}

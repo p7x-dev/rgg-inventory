@@ -1,0 +1,26 @@
+.bar-btn {
+	flex-shrink: 0;
+	font-size: 16px;
+}
+
+.bar-timer {
+	flex-shrink: 0;
+}
+
+/* Кнопки бара на тач-устройствах: крупнее иконка, удобнее попадание пальцем. */
+@media (width <= 700px) {
+	:host {
+		display: flex;
+		gap: 4px;
+		align-items: center;
+	}
+
+	.bar-btn {
+		font-size: 15px;
+	}
+
+	/* На мобильном настройки вынесены в фиксированную FAB-кнопку, дубль скрываем. */
+	.bar-btn-settings {
+		display: none;
+	}
+}

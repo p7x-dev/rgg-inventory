@@ -1,0 +1,96 @@
+.editor {
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+	border-radius: 8px;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	cursor: crosshair;
+	touch-action: none;
+}
+
+.editor-slot {
+	position: absolute;
+	border: 1px dashed rgba(255, 255, 255, 0.9);
+	background: rgba(255, 255, 255, 0.06);
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+	cursor: move;
+	touch-action: none;
+
+	&:hover {
+		background: rgba(255, 255, 255, 0.12);
+	}
+}
+
+.editor-slot-active {
+	border-color: var(--tui-background-accent-1, #ffd700);
+	background: rgba(255, 215, 0, 0.12);
+}
+
+.editor-handle {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	border: 1px solid #333;
+	border-radius: 2px;
+	background: #fff;
+}
+
+.editor-handle-nw {
+	top: -5px;
+	left: -5px;
+	cursor: nwse-resize;
+}
+
+.editor-handle-ne {
+	top: -5px;
+	right: -5px;
+	cursor: nesw-resize;
+}
+
+.editor-handle-sw {
+	bottom: -5px;
+	left: -5px;
+	cursor: nesw-resize;
+}
+
+.editor-handle-se {
+	right: -5px;
+	bottom: -5px;
+	cursor: nwse-resize;
+}
+
+.editor-handle-n {
+	top: -5px;
+	left: 50%;
+	cursor: ns-resize;
+	transform: translateX(-50%);
+}
+
+.editor-handle-s {
+	bottom: -5px;
+	left: 50%;
+	cursor: ns-resize;
+	transform: translateX(-50%);
+}
+
+.editor-handle-w {
+	top: 50%;
+	left: -5px;
+	cursor: ew-resize;
+	transform: translateY(-50%);
+}
+
+.editor-handle-e {
+	top: 50%;
+	right: -5px;
+	cursor: ew-resize;
+	transform: translateY(-50%);
+}
+
+.editor-empty {
+	margin: 0;
+	padding: 20px;
+	color: rgba(255, 255, 255, 0.6);
+	text-align: center;
+}

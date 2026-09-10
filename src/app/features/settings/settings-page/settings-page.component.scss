@@ -1,0 +1,76 @@
+.settings-page {
+	overflow-y: auto;
+	max-width: 760px;
+	height: 100%;
+	margin: 0 auto;
+	padding: 24px 20px 48px;
+}
+
+.settings-header {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 20px;
+}
+
+.settings-header-title {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+
+	h1 {
+		margin: 0;
+		font-weight: 700;
+		font-size: 22px;
+	}
+}
+
+.settings-header-logo {
+	color: var(--inv-accent);
+	font-size: 26px;
+}
+
+.settings-tabs {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-bottom: 20px;
+}
+
+.settings-tab {
+	text-transform: none;
+}
+
+.settings-content {
+	display: flex;
+	gap: 16px;
+	flex-direction: column;
+}
+
+/* Компактные настройки на телефонах: меньше отступы, шапка обрезается. */
+@media (width <= 700px) {
+	.settings-page {
+		padding: 12px 10px 32px;
+	}
+
+	.settings-header {
+		margin-bottom: 14px;
+	}
+
+	.settings-header-title h1 {
+		font-size: 18px;
+	}
+
+	.settings-tabs {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		margin-bottom: 14px;
+		padding-bottom: 4px;
+	}
+
+	.settings-tab {
+		flex-shrink: 0;
+	}
+}

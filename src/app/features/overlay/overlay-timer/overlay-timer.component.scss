@@ -1,0 +1,27 @@
+.timer {
+	display: inline-flex;
+	gap: 10px;
+	align-items: center;
+	padding: 6px 14px;
+	border: var(--inv-slot-border-width) solid var(--inv-slot-border-color);
+	border-radius: var(--inv-border-radius);
+	background: var(--inv-slot-bg);
+	box-shadow: var(--inv-shadow);
+	color: var(--inv-text);
+}
+
+.timer-control {
+	font-size: 14px;
+}
+
+/* Компактный таймер на телефонах. */
+@media (width <= 700px) {
+	.timer {
+		gap: 6px;
+		padding: 5px 10px;
+	}
+
+	.timer-control {
+		font-size: 13px;
+	}
+}

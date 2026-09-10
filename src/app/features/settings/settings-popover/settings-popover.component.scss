@@ -1,0 +1,30 @@
+.popover {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	width: min(520px, 90vw);
+	max-height: 100%;
+	border-radius: 16px;
+	background: var(--inv-popup-bg, rgba(30, 20, 50, 0.95));
+	backdrop-filter: blur(12px);
+	box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.popover-content {
+	display: flex;
+	gap: 2px;
+	flex: 1;
+	flex-direction: column;
+	overflow-y: auto;
+	min-height: 0;
+	padding: 8px;
+}
+
+/* На телефонах попап настроек растягивается почти на весь экран. */
+@media (width <= 700px) {
+	.popover {
+		width: min(420px, 96vw);
+		max-height: calc(100dvh - 16px);
+	}
+}

@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# angular
+dist/
+out-tsc/
+tmp/
+
+# tauri
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# tests
+coverage/
+test-results/
+
+# editor
+.vscode/
+.idea/
+*.swp
+
+# agent / локальные артефакты
+.opencode/
+.agent-state
+.angular/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# env
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,8 @@
+<section class="group">
+	<h3 class="group-title">{{ label() }} · {{ items().length }}</h3>
+	<div class="group-items">
+		@for (item of items(); track item.entry.id) {
+			<app-inventory-item-card [entry]="item.entry" [icon]="item.icon" />
+		}
+	</div>
+</section>

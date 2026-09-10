@@ -1,0 +1,61 @@
+.section {
+	display: flex;
+	gap: 14px;
+	flex-direction: column;
+	padding: 20px;
+	border-radius: 16px;
+	background: var(--tui-background-neutral-1, rgba(255, 255, 255, 0.05));
+}
+
+.section-title {
+	margin: 0;
+	font-weight: 600;
+	font-size: 16px;
+}
+
+.section-subtitle {
+	margin: 0;
+	font-size: 13px;
+	opacity: 0.7;
+}
+
+.source-select {
+	justify-content: space-between;
+	width: 100%;
+	max-width: 320px;
+	text-transform: none;
+}
+
+.field {
+	width: 100%;
+}
+
+.field-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 12px;
+}
+
+.hint {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.5;
+	opacity: 0.7;
+}
+
+.load-button {
+	align-self: flex-start;
+}
+
+.status {
+	margin: 0;
+	font-size: 13px;
+}
+
+.status-ok {
+	color: #7cd992;
+}
+
+.status-error {
+	color: #ff7d7d;
+}

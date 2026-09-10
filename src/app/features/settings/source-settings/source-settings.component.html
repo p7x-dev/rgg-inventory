@@ -1,0 +1,120 @@
+<section class="section">
+	<h2 class="section-title">Источник инвентаря</h2>
+	<p class="section-subtitle">Откуда брать список предметов</p>
+
+	<button
+		tuiButton
+		type="button"
+		appearance="flat"
+		class="source-select"
+		[tuiDropdown]="sourceMenu"
+		[(tuiDropdownOpen)]="dropdownOpen"
+	>
+		<span>{{ selectedLabel() }}</span>
+		<tui-icon icon="@tui.chevron-down" />
+	</button>
+	<ng-template #sourceMenu>
+		<tui-data-list [size]="'m'">
+			@for (option of options; track option.id) {
+				<button tuiOption type="button" (click)="selectSource(option)">
+					{{ option.label }}
+				</button>
+			}
+		</tui-data-list>
+	</ng-template>
+
+	@switch (activeSource()) {
+		@case ('rggland') {
+			<tui-textfield class="field">
+				<label>Твой ник на rgg.land</label>
+				<input
+					tuiInput
+					#rgglandNick
+					[value]="sources().sources.rggland.nick"
+					(input)="updateRgglandNick(rgglandNick.value)"
+					placeholder="bradhi"
+				/>
+			</tui-textfield>
+			<p class="hint">Приложение подхватит инвентарь с твоей страницы rgg.land. Просто впиши ник.</p>
+		}
+		@case ('sheets') {
+			<tui-textfield class="field">
+				<label>ID таблицы (из адресной строки)</label>
+				<input
+					tuiInput
+					#spreadsheetId
+					[value]="sources().sources.sheets.spreadsheetId"
+					(input)="updateSheets({ spreadsheetId: spreadsheetId.value })"
+					placeholder="1bXGVH8ZpG6R__V0jv5Z-ARQelQYILB33KqTxXj4mDOM"
+				/>
+			</tui-textfield>
+			<tui-textfield class="field">
+				<label>Номер листа (если в таблице несколько)</label>
+				<input
+					tuiInput
+					#gid
+					[value]="sources().sources.sheets.gid"
+					(input)="updateSheets({ gid: gid.value })"
+					placeholder="0"
+				/>
+			</tui-textfield>
+			<div class="field-grid">
+				<tui-textfield>
+					<label>Колонка: название предмета</label>
+					<input tuiInput #colName [value]="sources().sources.sheets.columns.name" (input)="updateSheetColumn('name', colName.value)" />
+				</tui-textfield>
+				<tui-textfield>
+					<label>Колонка: категория</label>
+					<input tuiInput #colCategory [value]="sources().sources.sheets.columns.category" (input)="updateSheetColumn('category', colCategory.value)" />
+				</tui-textfield>
+				<tui-textfield>
+					<label>Колонка: заметка (подсказка)</label>
+					<input tuiInput #colNote [value]="sources().sources.sheets.columns.note" (input)="updateSheetColumn('note', colNote.value)" />
+				</tui-textfield>
+				<tui-textfield>
+					<label>Колонка: описание</label>
+					<input tuiInput #colDescription [value]="sources().sources.sheets.columns.description" (input)="updateSheetColumn('description', colDescription.value)" />
+				</tui-textfield>
+			</div>
+			<p class="hint">
+				Таблица должна быть доступна «по ссылке». Категории: «эффект» → Эффекты, «спецролл» → Спецроллы, остальное → Обычные предметы.
+			</p>
+		}
+		@case ('local') {
+			<tui-textfield class="field">
+				<label>JSON</label>
+				<textarea
+					tuiTextarea
+					[(ngModel)]="localJson"
+					(ngModelChange)="updateLocalJson($event)"
+					[min]="10"
+					[max]="10"
+				></textarea>
+			</tui-textfield>
+			<p class="hint">Список предметов в формате JSON. Для продвинутых пользователей.</p>
+		}
+	}
+
+	<button
+		tuiButton
+		type="button"
+		class="load-button"
+		[iconStart]="'@tui.refresh-ccw'"
+		[disabled]="loadStatus() === 'loading'"
+		(click)="loadNow()"
+	>
+		Загрузить сейчас
+	</button>
+
+	@switch (loadStatus()) {
+		@case ('loading') {
+			<p class="status">Загружаю…</p>
+		}
+		@case ('ok') {
+			<p class="status status-ok">{{ loadMessage() }}</p>
+		}
+		@case ('error') {
+			<p class="status status-error" role="alert">{{ loadMessage() }}</p>
+		}
+	}
+</section>

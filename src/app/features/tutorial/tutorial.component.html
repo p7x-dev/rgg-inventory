@@ -1,0 +1,46 @@
+@if (step(); as current) {
+	<div class="tutorial">
+		<div class="tutorial-hole" [style]="position().hole"></div>
+		<div class="tutorial-card" [style]="position().card" [class.tutorial-card_pointer-up]="position().placement === 'up'">
+			<span class="tutorial-card-arrow"></span>
+			<div class="tutorial-card-body">
+				<header class="tutorial-card-header">
+					<span class="tutorial-card-dots">
+						@for (index of stepTrack; track index) {
+							<span
+								class="tutorial-card-dot"
+								[class.tutorial-card-dot_active]="index === stepIndex()"
+							></span>
+						}
+					</span>
+					<button
+						tuiButton
+						type="button"
+						appearance="flat"
+						size="xs"
+						class="tutorial-card-close"
+						aria-label="Пропустить обучалку"
+						iconStart="@tui.x"
+						(click)="finish()"
+					></button>
+				</header>
+				<h3 class="tutorial-card-title">{{ current.title }}</h3>
+				<p class="tutorial-card-text">{{ current.text }}</p>
+				<footer class="tutorial-card-footer">
+					<button
+						tuiButton
+						type="button"
+						appearance="outline"
+						size="s"
+						(click)="finish()"
+					>
+						Пропустить
+					</button>
+					<button tuiButton type="button" size="s" (click)="next()">
+						{{ isLast() ? 'Понятно' : 'Далее' }}
+					</button>
+				</footer>
+			</div>
+		</div>
+	</div>
+}

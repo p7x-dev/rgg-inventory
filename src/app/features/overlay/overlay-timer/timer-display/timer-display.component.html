@@ -1,0 +1,6 @@
+<span class="timer-time" [class.timer-time_active]="snapshot().running" [style.font-family]="'var(--inv-timer-font)'">{{ formatted() }}</span>
+@if (isBot()) {
+	<span class="timer-source" title="Синхронизирован с ботом RGG">
+		<tui-icon icon="@tui.link" />
+	</span>
+}

@@ -1,0 +1,26 @@
+.section {
+	display: flex;
+	gap: 18px;
+	flex-direction: column;
+	padding: 20px;
+	border-radius: 16px;
+	background: var(--tui-background-neutral-1, rgba(255, 255, 255, 0.05));
+}
+
+.section-title {
+	margin: 0;
+	font-weight: 600;
+	font-size: 16px;
+}
+
+.switches {
+	display: flex;
+	gap: 14px;
+	flex-direction: column;
+	padding-top: 4px;
+	border-top: 1px solid var(--tui-background-neutral-2, rgba(255, 255, 255, 0.08));
+}
+
+.tutorial-restart {
+	margin-top: 2px;
+}

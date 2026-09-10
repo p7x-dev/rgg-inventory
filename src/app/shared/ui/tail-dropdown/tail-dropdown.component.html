@@ -1,0 +1,21 @@
+<div class="tail-dropdown__surface">
+	<div class="tail-dropdown__box" #box>
+		<tui-scrollbar class="tail-dropdown__scroll">
+			<div *polymorpheusOutlet="directive.content() as content; context: { $implicit: close }" class="tail-dropdown__primitive">
+				{{ content }}
+			</div>
+		</tui-scrollbar>
+	</div>
+	<svg
+		class="tail-dropdown__tail"
+		[class._top]="tailSide() === 'top'"
+		[class._bottom]="tailSide() === 'bottom'"
+		[style.left.px]="tailOffset()"
+		[style.top.px]="tailSide() === 'top' ? -tailProtrude : null"
+		[style.bottom.px]="tailSide() === 'bottom' ? -tailProtrude : null"
+		viewBox="0 0 12 9"
+		role="presentation"
+	>
+		<path d="M 6 0 C 4.4 2, 2.4 4.4, 1.2 6.8 C 1 7.2, 1.3 8, 2 8 L 10 8 C 10.7 8, 11 7.2, 10.8 6.8 C 9.6 4.4, 7.6 2, 6 0 Z" />
+	</svg>
+</div>

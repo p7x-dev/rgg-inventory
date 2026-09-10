@@ -1,0 +1,67 @@
+.header {
+	display: flex;
+	gap: 4px;
+	flex-direction: column;
+	align-items: flex-start;
+	color: var(--inv-text);
+	font-family: var(--inv-font);
+}
+
+.header-title {
+	font-weight: 600;
+	font-size: 15px;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.header-currencies {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.header-currency {
+	display: inline-flex;
+	gap: 4px;
+	align-items: center;
+	color: var(--inv-text-muted);
+	font-size: 13px;
+}
+
+.header-currency-tears {
+	color: #8ecbff;
+}
+
+.header-currency-icon {
+	font-size: 16px;
+}
+
+.header-currency-icon-custom {
+	object-fit: contain;
+	width: 16px;
+	height: 16px;
+	pointer-events: none;
+}
+
+/* Компактный заголовок на маленьких экранах: обрезаем длинные ники. */
+@media (width <= 700px) {
+	.header {
+		max-width: 40vw;
+	}
+
+	.header-title {
+		overflow: hidden;
+		font-size: 13px;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.header-currencies {
+		gap: 6px;
+	}
+
+	.header-currency {
+		font-size: 12px;
+	}
+}

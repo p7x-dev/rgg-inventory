@@ -1,0 +1,71 @@
+<div class="export-block">
+	<h3 class="export-title">Экспорт темы</h3>
+	<p class="export-hint">
+		Сохраните тему: файл CSS для OBS или zip-архив целиком (дизайн + шрифт + токены) для стримера.
+	</p>
+	<div class="export-row">
+		<tui-textfield class="export-nick">
+			<label>Ник стримера</label>
+			<input
+				#nickInput
+				tuiInput
+				[value]="exportNick() || suggestedNick()"
+				(input)="setExportNick(nickInput.value)"
+				placeholder="bradhi"
+			/>
+		</tui-textfield>
+		@if (suggestedNick() && suggestedNick() !== exportNick()) {
+			<button tuiButton type="button" appearance="flat" (click)="useSuggestedNick()">
+				Взять {{ suggestedNick() }}
+			</button>
+		}
+	</div>
+	<div class="export-formats" role="radiogroup" aria-label="Формат">
+		@for (format of exportFormats; track format.id) {
+			<button
+				tuiButton
+				type="button"
+				[appearance]="exportFormat() === format.id ? 'primary' : 'flat'"
+				(click)="setExportFormat(format.id)"
+			>
+				{{ format.label }}
+			</button>
+		}
+	</div>
+	<div class="export-filenames">
+		<span>Файл: <code>{{ exportFileName() }}</code></span>
+	</div>
+	<div class="export-actions">
+		<button tuiButton type="button" [iconStart]="'@tui.download'" (click)="exportTheme()">
+			Скачать {{ exportFormat() }}
+		</button>
+		<button tuiButton type="button" [iconStart]="'@tui.archive'" (click)="exportZip()">
+			Скачать zip
+		</button>
+	</div>
+</div>
+
+<div class="import-block">
+	<h3 class="import-title">Импорт темы</h3>
+	<p class="import-hint">
+		Загрузите файл темы (.css/.scss/.sass/.less/.styl) или архив (.zip) — он будет применён.
+	</p>
+	<label class="import-upload">
+		<input
+			#themeFile
+			type="file"
+			accept=".css,.scss,.sass,.less,.styl,.zip,text/css,text/x-scss"
+			hidden
+			(change)="onThemeFileSelected($event)"
+		/>
+		<button tuiButton type="button" [iconStart]="'@tui.upload'" (click)="themeFile.click()">
+			Импортировать тему
+		</button>
+	</label>
+	@if (importError(); as message) {
+		<p class="design-error" role="alert">{{ message }}</p>
+	}
+	@if (importMessage(); as message) {
+		<p class="import-ok">{{ message }}</p>
+	}
+</div>

@@ -1,0 +1,23 @@
+<div class="timer">
+	<app-timer-display [snapshot]="snapshot()" [parts]="parts()" [displayMs]="displayMs()" />
+	@if (snapshot().source !== 'bot') {
+		<button
+			tuiButton
+			type="button"
+			appearance="flat"
+			class="timer-control"
+			[iconStart]="snapshot().running ? '@tui.pause' : '@tui.play'"
+			[attr.aria-label]="snapshot().running ? 'Пауза' : 'Старт'"
+			(click)="toggle()"
+		></button>
+		<button
+			tuiButton
+			type="button"
+			appearance="flat"
+			class="timer-control"
+			iconStart="@tui.rotate-ccw"
+			aria-label="Сбросить таймер"
+			(click)="reset()"
+		></button>
+	}
+</div>

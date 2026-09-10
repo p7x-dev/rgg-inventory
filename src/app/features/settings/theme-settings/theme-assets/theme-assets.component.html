@@ -1,0 +1,55 @@
+<div class="assets-block">
+	<h3 class="assets-title">Свои иконки и шрифт</h3>
+	<p class="assets-hint">
+		Загрузите собственные иконки монеток/слёз (PNG/WebP) и шрифт (TTF/OTF/WOFF/WOFF2) —
+		они встроятся в оверлей и в zip-архив темы.
+	</p>
+
+	<div class="assets-grid">
+		<label class="asset-cell">
+			<span class="asset-label">Монетки</span>
+			<input #coinInput type="file" accept="image/png,image/jpeg,image/webp" hidden (change)="onCoinIconSelected($event)" />
+			<button tuiButton type="button" appearance="flat" (click)="coinInput.click()">
+				{{ tokens().coinIcon ? 'Заменить' : 'Загрузить' }}
+			</button>
+			@if (tokens().coinIcon) {
+				<button tuiButton type="button" appearance="flat" (click)="resetIcon('coinIcon')">Сбросить</button>
+			}
+		</label>
+
+		<label class="asset-cell">
+			<span class="asset-label">Слёзы</span>
+			<input #tearInput type="file" accept="image/png,image/jpeg,image/webp" hidden (change)="onTearIconSelected($event)" />
+			<button tuiButton type="button" appearance="flat" (click)="tearInput.click()">
+				{{ tokens().tearIcon ? 'Заменить' : 'Загрузить' }}
+			</button>
+			@if (tokens().tearIcon) {
+				<button tuiButton type="button" appearance="flat" (click)="resetIcon('tearIcon')">Сбросить</button>
+			}
+		</label>
+
+		<label class="asset-cell asset-cell-wide">
+			<span class="asset-label">Шрифт</span>
+			<input
+				#fontInput
+				type="file"
+				accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2"
+				hidden
+				(change)="onFontSelected($event)"
+			/>
+			<button tuiButton type="button" appearance="flat" (click)="fontInput.click()">
+				{{ tokens().fontFace ? 'Заменить шрифт' : 'Загрузить шрифт' }}
+			</button>
+			@if (tokens().fontFace) {
+				<button tuiButton type="button" appearance="flat" (click)="resetFont()">Сбросить</button>
+			}
+		</label>
+	</div>
+
+	@if (message(); as text) {
+		<p class="assets-ok">{{ text }}</p>
+	}
+	@if (error(); as text) {
+		<p class="assets-error" role="alert">{{ text }}</p>
+	}
+</div>

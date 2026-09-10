@@ -1,0 +1,23 @@
+.switch-row {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	justify-content: space-between;
+	cursor: pointer;
+}
+
+.switch-row-text {
+	display: flex;
+	gap: 2px;
+	flex-direction: column;
+}
+
+.switch-row-label {
+	font-weight: 500;
+	font-size: 14px;
+}
+
+.switch-row-hint {
+	font-size: 12px;
+	opacity: 0.7;
+}

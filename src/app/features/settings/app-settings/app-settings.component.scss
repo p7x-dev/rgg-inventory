@@ -1,0 +1,50 @@
+.section {
+	display: flex;
+	gap: 14px;
+	flex-direction: column;
+	padding: 20px;
+	border-radius: 16px;
+	background: var(--tui-background-neutral-1, rgba(255, 255, 255, 0.05));
+}
+
+.section-title {
+	margin: 0;
+	font-weight: 600;
+	font-size: 16px;
+}
+
+.section-subtitle {
+	margin: 0;
+	font-size: 13px;
+	opacity: 0.7;
+}
+
+.hint {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.5;
+	opacity: 0.7;
+}
+
+.os {
+	margin: 0;
+	font-size: 13px;
+}
+
+.download-button,
+.check-button {
+	align-self: flex-start;
+}
+
+.status {
+	margin: 0;
+	font-size: 13px;
+}
+
+.status-warn {
+	color: #ffd57d;
+}
+
+.status-error {
+	color: #ff7d7d;
+}

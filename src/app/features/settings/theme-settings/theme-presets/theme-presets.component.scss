@@ -1,0 +1,29 @@
+.presets {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+}
+
+.preset-button {
+	white-space: nowrap;
+}
+
+.preset-save {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	align-items: center;
+	margin-bottom: 6px;
+}
+
+.preset-name {
+	flex: 1;
+	min-width: 160px;
+}
+
+.preset-message {
+	margin: 4px 0 0;
+	font-size: 13px;
+	opacity: 0.85;
+}

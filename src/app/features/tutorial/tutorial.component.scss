@@ -1,0 +1,111 @@
+.tutorial {
+	position: fixed;
+	z-index: 1000;
+	pointer-events: none;
+	inset: 0;
+}
+
+.tutorial-hole {
+	position: fixed;
+	border: 2px solid var(--tui-background-accent-1, #6a5cff);
+	border-radius: 12px;
+	box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+}
+
+.tutorial-card {
+	position: fixed;
+	z-index: 1001;
+	pointer-events: auto;
+}
+
+.tutorial-card-arrow {
+	position: absolute;
+	bottom: -16px;
+	left: 50%;
+	width: 0;
+	height: 0;
+	border: 8px solid transparent;
+	border-top-color: var(--inv-popup-bg, #1a1428);
+	transform: translateX(-50%);
+}
+
+.tutorial-card-body {
+	position: relative;
+	width: min(300px, calc(100vw - 24px));
+	padding: 16px;
+	border: 1px solid var(--tui-border-normal, rgba(255, 255, 255, 0.15));
+	border-radius: 16px;
+	background: var(--inv-popup-bg, #1a1428);
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+	color: var(--tui-text-primary, #fff);
+}
+
+/* Карточка под блоком: стрелка должна смотреть вверх, на блок. */
+.tutorial-card_pointer-up .tutorial-card-arrow {
+	top: -16px;
+	bottom: auto;
+	border-top-color: transparent;
+	border-bottom-color: var(--inv-popup-bg, #1a1428);
+}
+
+.tutorial-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.tutorial-card-dots {
+	display: flex;
+	gap: 6px;
+}
+
+.tutorial-card-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--tui-background-neutral-2, rgba(255, 255, 255, 0.2));
+
+	&_active {
+		background: var(--tui-background-accent-1, #6a5cff);
+	}
+}
+
+.tutorial-card-title {
+	margin: 0 0 6px;
+	font-weight: 600;
+	font-size: 15px;
+}
+
+.tutorial-card-text {
+	margin: 0 0 14px;
+	font-size: 13px;
+	line-height: 1.5;
+	opacity: 0.85;
+}
+
+.tutorial-card-footer {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+/* Маленькие экраны (телефоны): компактнее карточка и стрелка ближе к блоку. */
+@media (width <= 480px) {
+	.tutorial-card-body {
+		padding: 12px;
+		border-radius: 12px;
+	}
+
+	.tutorial-card-title {
+		font-size: 14px;
+	}
+
+	.tutorial-card-text {
+		font-size: 12px;
+	}
+
+	.tutorial-card-arrow {
+		border-width: 7px;
+	}
+}

@@ -1,0 +1,31 @@
+.timer-time {
+	color: var(--inv-text-muted);
+	font-size: 22px;
+	letter-spacing: 0.04em;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+	transition: color 0.2s ease;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Идёт отсчёт: цифры подсвечиваются акцентным цветом темы. */
+.timer-time_active {
+	color: var(--inv-accent);
+	animation: timer-pulse 1.2s ease-in-out infinite;
+}
+
+.timer-source {
+	display: inline-flex;
+	color: var(--inv-text-muted);
+	font-size: 14px;
+}
+
+@keyframes timer-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+
+	50% {
+		opacity: 0.35;
+	}
+}

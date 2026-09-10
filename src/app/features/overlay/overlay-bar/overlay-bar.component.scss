@@ -1,0 +1,98 @@
+:host {
+	display: flex;
+	align-items: flex-end;
+	box-sizing: border-box;
+	min-height: 100%;
+	padding: 8px 10px;
+}
+
+.bar {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	width: 100%;
+	padding: var(--inv-padding, 10px);
+	border-radius: var(--inv-border-radius, 12px);
+	transition: max-height 0.35s ease;
+}
+
+.bar-profile {
+	flex-shrink: 0;
+}
+
+.bar-inventory-block {
+	flex: 1;
+	overflow: hidden;
+	min-width: 0;
+}
+
+.bar-inventory {
+	display: block;
+	width: 100%;
+	transition: max-height 0.35s ease;
+}
+
+.bar-controls {
+	flex-shrink: 0;
+}
+
+.bar-error {
+	position: fixed;
+	top: 8px;
+	left: 50%;
+	z-index: 10;
+	padding: 6px 14px;
+	border-radius: 8px;
+	background: rgba(180, 40, 40, 0.85);
+	color: #fff;
+	font-size: 13px;
+	transform: translateX(-50%);
+}
+
+/* Фиксированная кнопка настроек (только в мобильной версии), всегда на экране. */
+.bar-settings-fab {
+	display: none;
+}
+
+@media (width <= 700px) {
+	.bar-settings-fab {
+		position: fixed;
+		right: 12px;
+		bottom: 12px;
+		z-index: 999;
+		display: inline-flex;
+		border-radius: 999px;
+		box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+	}
+}
+
+/* Мобильная раскладка: профиль + кнопки сверху, инвентарь полосой внизу. */
+@media (width <= 700px) {
+	:host {
+		align-items: flex-start;
+		padding: 6px;
+	}
+
+	.bar {
+		gap: 8px;
+		flex-wrap: wrap;
+		padding: 8px;
+	}
+
+	.bar-profile {
+		order: 1;
+	}
+
+	.bar-controls {
+		order: 2;
+		margin-left: auto;
+	}
+
+	.bar-inventory-block {
+		flex-basis: 100%;
+		order: 3;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: thin;
+	}
+}

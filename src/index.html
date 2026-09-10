@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="utf-8" />
+		<title>RGG Inventory</title>
+		<base href="/" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/x-icon" href="favicon.ico" />
+		<script>
+			var _errs = [];
+			function _showErr() {
+				if (!_errs.length) return;
+				var d = document.getElementById('_dbg');
+				if (!d) {
+					d = document.createElement('div');
+					d.id = '_dbg';
+					d.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#1a0a0a;color:#ff4444;padding:20px;overflow:auto;font:14px monospace;white-space:pre-wrap;word-break:break-all';
+					document.body.appendChild(d);
+				}
+				d.textContent = 'ERRORS:\n' + _errs.join('\n---\n');
+			}
+			var _origError = console.error;
+			console.error = function () {
+				_origError.apply(console, arguments);
+				var msg = Array.from(arguments).map(function (a) { return typeof a === 'object' ? (a.message || a.stack || JSON.stringify(a)) : String(a); }).join(' ');
+				if (msg.indexOf('NG') !== -1 || msg.indexOf('Error') !== -1) {
+					_errs.push(msg);
+					_showErr();
+				}
+			};
+			window.onerror = function(m, s, l, c, e) {
+				_errs.push('onerror: ' + m + ' at ' + s + ':' + l + ':' + c + (e ? '\n' + e.stack : ''));
+				_showErr();
+			};
+			window.onunhandledrejection = function(e) {
+				_errs.push('unhandledrejection: ' + (e.reason && e.reason.stack || e.reason || e));
+				_showErr();
+			};
+		</script>
+	</head>
+	<body class="t-root">
+		<app-root></app-root>
+	</body>
+</html>

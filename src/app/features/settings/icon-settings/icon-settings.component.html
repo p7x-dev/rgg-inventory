@@ -1,0 +1,124 @@
+<section class="section">
+	<h2 class="section-title">Иконки</h2>
+
+	<div class="block">
+		<h3 class="block-title">Иконки из RGG</h3>
+		<p class="hint">
+			Каталог rgg.land: токен-аватар стримера и эмодзи с главной страницы. Клик по иконке назначит её выбранному
+			предмету.
+		</p>
+		<div class="actions">
+			<button
+				tuiButton
+				type="button"
+				[iconStart]="'@tui.refresh-ccw'"
+				[disabled]="catalogLoading()"
+				(click)="loadCatalog()"
+			>
+				{{ catalogLoading() ? 'Загружаю…' : 'Загрузить каталог' }}
+			</button>
+			@if (catalog().length > 0) {
+				<button tuiButton type="button" appearance="flat" (click)="autoAssignFromCatalog()">
+					Авто-подбор по именам
+				</button>
+			}
+		</div>
+		@if (catalogError(); as message) {
+			<p class="status-error" role="alert">{{ message }}</p>
+		}
+		@if (catalog().length > 0) {
+			<div class="catalog">
+				@for (item of catalog(); track item.url) {
+					<button type="button" class="catalog-item" [title]="item.name" (click)="assignCatalogItem(item)">
+						<img class="catalog-thumb" [src]="item.url" alt="" loading="lazy" />
+						<span class="catalog-name">{{ item.name }}</span>
+					</button>
+				}
+			</div>
+		}
+	</div>
+
+	<div class="block">
+		<h3 class="block-title">Пак иконок (zip)</h3>
+		<p class="hint">
+			Файлы в архиве сопоставляются с предметами по имени: «паук.png» → предмет «Паук». Или выберите предмет и
+			назначьте иконку вручную.
+		</p>
+
+		<button
+			tuiButton
+			type="button"
+			class="item-select"
+			appearance="flat"
+			[tuiDropdown]="itemMenu"
+			[(tuiDropdownOpen)]="selectedItemOpen"
+		>
+			<span>{{ selectedItem() || 'Выберите предмет…' }}</span>
+			<tui-icon icon="@tui.chevron-down" />
+		</button>
+		<ng-template #itemMenu>
+			<tui-data-list [size]="'m'">
+				@for (name of itemNames(); track name) {
+					<button tuiOption type="button" (click)="selectItem(name)">
+						{{ name }}
+					</button>
+				}
+			</tui-data-list>
+		</ng-template>
+
+		<div class="actions">
+			<label class="upload">
+				<input #zipInput type="file" accept=".zip,application/zip" hidden (change)="onZipSelected($event)" />
+				<button tuiButton type="button" [iconStart]="'@tui.upload'" (click)="zipInput.click()">
+					Импортировать zip-пак
+				</button>
+			</label>
+			<label class="upload">
+				<input #singleInput type="file" accept="image/*" hidden (change)="onSingleIconSelected($event)" />
+				<button
+					tuiButton
+					type="button"
+					appearance="flat"
+					[iconStart]="'@tui.image'"
+					(click)="singleInput.click()"
+				>
+					Иконка для выбранного предмета
+				</button>
+			</label>
+		</div>
+
+		@if (importError(); as message) {
+			<p class="status-error" role="alert">{{ message }}</p>
+		}
+		@if (importReport(); as report) {
+			@if (report.matched.length > 0) {
+				<p class="status-ok">Сопоставлено: {{ report.matched.join(', ') }}</p>
+			}
+			@if (report.unknown.length > 0) {
+				<p class="hint">Без совпадения: {{ report.unknown.join(', ') }}</p>
+			}
+		}
+	</div>
+
+	@if (hasIcons()) {
+		<div class="block">
+			<h3 class="block-title">Мои иконки</h3>
+			<ul class="icon-list">
+				@for (entry of icons() | keyvalue; track entry.key) {
+					<li class="icon-row">
+						<img class="icon-thumb" [src]="entry.value" alt="" />
+						<span class="icon-name">{{ entry.key }}</span>
+						<button
+							tuiButton
+							type="button"
+							appearance="flat"
+							iconStart="@tui.trash"
+							aria-label="Удалить иконку"
+							(click)="removeIcon(entry.key)"
+						></button>
+					</li>
+				}
+			</ul>
+		</div>
+	}
+</section>

@@ -1,0 +1,30 @@
+<div class="board" [class.board-design]="designMode()" [style.aspect-ratio]="aspectRatio()" [style.--inv-cols]="cols()">
+	@if (designMode(); as designModeActive) {
+		@if (design(); as design) {
+			<div class="board-background" [style.background-image]="'url(' + design.image + ')'"></div>
+			@for (slot of positionedSlots(); track slot.index) {
+				<app-inventory-slot
+					class="board-slot"
+					[style.left.%]="slot.leftPercent"
+					[style.top.%]="slot.topPercent"
+					[style.width.%]="slot.widthPercent"
+					[style.height.%]="slot.heightPercent"
+					[content]="designItemAt(slot.index)"
+					[texture]="slot.texture"
+					[selected]="selectedIndex() === slot.index"
+					(select)="onDesignSlotSelect(slot.index)"
+				/>
+			}
+		}
+	} @else {
+		@for (row of rowIndexes(); track row) {
+			@for (col of colIndexes(); track col) {
+				<app-inventory-slot
+					[content]="itemAt(row, col)"
+					[selected]="selectedIndex() === slotIndexAt(row, col)"
+					(select)="onSlotSelect(row, col)"
+				/>
+			}
+		}
+	}
+</div>

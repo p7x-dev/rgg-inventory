@@ -1,0 +1,29 @@
+// Дефолтная тема «RGG Retro». Токены перекрываются на лету через
+// document.documentElement.style (ThemeService).
+:root {
+	--inv-background: #120d1c;
+	--inv-background-image: none;
+	--inv-background-opacity: 1;
+	--inv-slot-size: 56px;
+	--inv-slot-gap: 6px;
+	--inv-padding: 14px;
+	--inv-border-radius: 12px;
+	--inv-slot-bg: rgba(34, 24, 56, 0.72);
+	--inv-slot-border: 2px solid #6d4cff;
+	--inv-slot-hover-bg: rgba(109, 76, 255, 0.35);
+	--inv-slot-texture: none;
+	--inv-text: #f3edff;
+	--inv-text-muted: #a99fd0;
+	--inv-accent: #ff6b2c;
+	--inv-timer-font: 'DS-DIGI', 'Roboto Mono', monospace;
+	--inv-border-color: #6d4cff;
+	--inv-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+	--inv-font: 'Rubik', 'Segoe UI', sans-serif;
+
+	// Всплывающие поверхности: фон по умолчанию, перекрывается цветом оверлея в рантайме.
+	--inv-popup-bg: rgba(30, 20, 50, 0.95);
+
+	// Поверхности Taiga (дропдауны, диалоги) следуют за цветом оверлея.
+	--tui-background-elevation-1: var(--inv-popup-bg, #1a1428);
+	--tui-background-elevation-2: var(--inv-popup-bg, #1a1428);
+}

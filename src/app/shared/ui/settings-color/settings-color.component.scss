@@ -1,0 +1,60 @@
+.color-row {
+	display: flex;
+	gap: 8px;
+	flex-direction: column;
+}
+
+.color-row-header {
+	display: flex;
+	gap: 12px;
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.color-row-label {
+	font-weight: 500;
+	font-size: 14px;
+}
+
+.color-row-value {
+	font-size: 13px;
+	opacity: 0.8;
+	font-variant-numeric: tabular-nums;
+}
+
+.color-row-control {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+
+.color-input {
+	width: 48px;
+	height: 32px;
+	padding: 0;
+	border: none;
+	border-radius: 8px;
+	background: none;
+	cursor: pointer;
+
+	&::-webkit-color-swatch-wrapper {
+		padding: 2px;
+	}
+
+	&::-webkit-color-swatch {
+		border: 1px solid var(--tui-border-normal, rgba(255, 255, 255, 0.2));
+		border-radius: 6px;
+	}
+}
+
+.color-swatch {
+	flex: 1;
+	height: 32px;
+	border: 1px solid var(--tui-border-normal, rgba(255, 255, 255, 0.2));
+	border-radius: 8px;
+}
+
+.color-row-hint {
+	font-size: 12px;
+	opacity: 0.6;
+}

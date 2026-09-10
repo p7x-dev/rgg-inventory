@@ -1,0 +1,49 @@
+<button
+	tuiButton
+	type="button"
+	appearance="flat"
+	class="bar-btn"
+	iconStart="@tui.backpack"
+	aria-label="Инвентарь"
+	(click)="inventoryClick.emit()"
+></button>
+
+@if (showTimer()) {
+	<app-overlay-timer class="bar-timer" />
+}
+
+@if (showObs()) {
+	<button
+		tuiButton
+		type="button"
+		appearance="flat"
+		class="bar-btn"
+		iconStart="@tui.cast"
+		aria-label="Открыть оверлей для OBS в новом окне"
+		(click)="obsClick.emit()"
+	></button>
+}
+
+@if (showDownload() && releaseStore.hasArtifact()) {
+	<button
+		tuiButton
+		type="button"
+		appearance="flat"
+		class="bar-btn"
+		iconStart="@tui.download"
+		aria-label="Скачать приложение"
+		(click)="onDownload()"
+	></button>
+}
+
+<button
+	tuiButton
+	type="button"
+	appearance="flat"
+	class="bar-btn bar-btn-settings"
+	iconStart="@tui.settings"
+	aria-label="Настройки"
+	[tuiDropdown]="settingsMenu()"
+	[tuiDropdownMaxHeight]="560"
+	[(tuiDropdownOpen)]="settingsOpen"
+></button>

@@ -1,0 +1,17 @@
+<label class="slider-row">
+	<span class="slider-row-header">
+		<span class="slider-row-label">{{ label() }}</span>
+		<span class="slider-row-value">{{ value() }}{{ unit() }}</span>
+	</span>
+	<input
+		tuiSlider
+		type="range"
+		[value]="value()"
+		[min]="min()"
+		[max]="max()"
+		[step]="step()"
+		(input)="onInput($event)"
+		(change)="onInput($event)"
+		[attr.aria-label]="label()"
+	/>
+</label>

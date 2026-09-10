@@ -1,0 +1,35 @@
+<button
+	type="button"
+	class="slot"
+	[class.slot-empty]="!content()"
+	[class.slot-selected]="selected()"
+	[attr.aria-pressed]="selected() || null"
+	[style.background-image]="backgroundImage()"
+	[attr.aria-label]="label()"
+	(click)="onClick()"
+>
+	@if (content(); as item) {
+		@if (item.icon) {
+			<img class="slot-icon" [src]="item.icon" alt="" loading="lazy" />
+		} @else {
+			<span class="slot-fallback">{{ fallbackText() }}</span>
+		}
+		@if (quantity() > 1) {
+			<span class="slot-count">{{ quantity() }}</span>
+		}
+		@if (tooltip()) {
+			<span class="slot-tooltip" role="tooltip">
+				<strong class="slot-tooltip__name">{{ item.entry.name }}</strong>
+				@if (item.entry.quantity && item.entry.quantity > 1) {
+					<span class="slot-tooltip__qty">×{{ quantity() }}</span>
+				}
+				@if (item.entry.description) {
+					<span class="slot-tooltip__desc">{{ item.entry.description }}</span>
+				}
+				@if (item.entry.note) {
+					<span class="slot-tooltip__note">{{ item.entry.note }}</span>
+				}
+			</span>
+		}
+	}
+</button>

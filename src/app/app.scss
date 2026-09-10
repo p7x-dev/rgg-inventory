@@ -1,0 +1,19 @@
+.app-shell {
+	position: fixed;
+	height: 100%;
+	background: transparent;
+	color: var(--inv-text, #f3edff);
+	font-family: var(--inv-font, 'Rubik', 'Segoe UI', sans-serif);
+	inset: 0;
+}
+
+/* OBS-виджет: прозрачный холст, чтобы в OBS был виден только сам оверлей. */
+.app-overlay-page-host {
+	position: fixed;
+	overflow: hidden;
+	height: 100%;
+	background: transparent;
+	color: var(--inv-text, #f3edff);
+	font-family: var(--inv-font, 'Rubik', 'Segoe UI', sans-serif);
+	inset: 0;
+}

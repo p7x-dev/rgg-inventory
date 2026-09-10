@@ -1,0 +1,39 @@
+<tui-textfield class="search">
+	<label>Поиск</label>
+	<input #search tuiInput [value]="query()" (input)="query.set(search.value)" placeholder="Название или заметка…" />
+</tui-textfield>
+
+<div class="sorts" role="radiogroup" aria-label="Сортировка">
+	<button
+		tuiButton
+		type="button"
+		[appearance]="sortMode() === 'category' ? 'primary' : 'flat'"
+		(click)="onSortClick('category')"
+	>
+		Категория
+	</button>
+	<button
+		tuiButton
+		type="button"
+		[appearance]="sortMode() === 'name' ? 'primary' : 'flat'"
+		(click)="onSortClick('name')"
+	>
+		А-Я
+	</button>
+	<button
+		tuiButton
+		type="button"
+		[appearance]="sortMode() === 'quantity' ? 'primary' : 'flat'"
+		(click)="onSortClick('quantity')"
+	>
+		Кол-во
+	</button>
+	<button
+		tuiButton
+		type="button"
+		appearance="flat"
+		[iconStart]="sortAsc() ? '@tui.arrow-up' : '@tui.arrow-down'"
+		aria-label="Направление сортировки"
+		(click)="onSortClick(sortMode())"
+	></button>
+</div>

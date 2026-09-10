@@ -1,0 +1,29 @@
+<div class="popover">
+	<app-settings-header (close)="close.emit()" />
+
+	<div class="popover-content">
+		<app-settings-section title="Источник инвентаря" [open]="true">
+			<app-source-settings />
+		</app-settings-section>
+
+		<app-settings-section title="Оверлей">
+			<app-overlay-settings />
+		</app-settings-section>
+
+		<app-settings-section title="Дизайн">
+			<app-theme-settings />
+		</app-settings-section>
+
+		<app-settings-section title="Иконки">
+			<app-icon-settings />
+		</app-settings-section>
+
+		<app-settings-section title="Таймер">
+			<app-timer-settings />
+		</app-settings-section>
+
+		<app-settings-section title="Приложение">
+			<app-app-settings />
+		</app-settings-section>
+	</div>
+</div>

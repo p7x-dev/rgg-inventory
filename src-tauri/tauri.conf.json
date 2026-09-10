@@ -1,0 +1,43 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "RGG Inventory",
+  "version": "0.1.0",
+  "identifier": "dev.rgg.inventory",
+  "build": {
+    "frontendDist": "../dist/rgg-inventory/browser",
+    "devUrl": "http://localhost:4200",
+    "beforeDevCommand": "pnpm start",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "RGG Inventory",
+        "width": 920,
+        "height": 680,
+        "minWidth": 320,
+        "minHeight": 200,
+        "resizable": true,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "shadow": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
