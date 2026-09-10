@@ -3,7 +3,6 @@ import type { SlotItem } from '@core/models/overlay.model';
 import type { DesignLayout } from '@core/models/theme.model';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { overlayUrl } from '@app/app';
 import { InventoryBoardComponent } from '@app/features/overlay/inventory-board/inventory-board.component';
 import { InventoryPopoverComponent } from '@app/features/overlay/inventory-popover/inventory-popover.component';
 import { BarControlsComponent } from '@app/features/overlay/overlay-bar/bar-controls/bar-controls.component';
@@ -13,6 +12,7 @@ import { HotkeyStore } from '@core/stores/hotkey.store';
 import { IconStore } from '@core/stores/icon.store';
 import { InventoryStore } from '@core/stores/inventory.store';
 import { SettingsStore } from '@core/stores/settings.store';
+import { overlayUrl } from '@core/utils/overlay';
 import { TuiButton, TuiDialogService, TuiDropdown, TuiDropdownOpen } from '@taiga-ui/core';
 import { finalize } from 'rxjs';
 

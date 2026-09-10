@@ -1,10 +1,10 @@
 <tui-root>
-	@if (overlayMode()) {
+	@if (shell.overlayMode()) {
 		<div appThemeHost class="app-overlay-page-host">
 			<app-overlay-page />
 		</div>
 	} @else {
-		<div appThemeHost class="app-shell" [style.background]="appBackground()">
+		<div appThemeHost class="app-shell" [style.background]="shell.appBackground()">
 			<app-overlay-bar />
 			<app-tutorial />
 		</div>
