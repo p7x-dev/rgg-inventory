@@ -3,12 +3,13 @@ import { httpGetJson } from '@core/connectors/http.util';
 import {
 	detectReleaseOs,
 	isReleaseInfo,
-	releaseArtifactFormat,
 	type ReleaseArtifact,
+	releaseArtifactFormat,
 	type ReleaseInfo,
 	releaseOsLabel,
 } from '@core/models/release.model';
 import { isTauri } from '@core/utils/platform';
+import { APP_VERSION } from '@core/version';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 
 /**
@@ -136,7 +137,7 @@ export const ReleaseStore = signalStore(
 		/** Есть ли новая версия относительно текущей установленной (OTA для Tauri). */
 		hasUpdate: computed(() => {
 			const version = store.latest()?.version ?? store.githubVersion();
-			return version !== null && version !== '' && version !== '0.1.0';
+			return version !== null && version !== '' && version !== APP_VERSION;
 		}),
 	})),
 	withMethods((store) => ({
@@ -256,10 +257,10 @@ export const ReleaseStore = signalStore(
 					const { getVersion } = await import('@tauri-apps/api/app');
 					return await getVersion();
 				} catch {
-					return '0.1.0';
+					return APP_VERSION;
 				}
 			}
-			return '0.1.0';
+			return APP_VERSION;
 		},
 	})),
 );

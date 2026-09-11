@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { releaseOsLabel, type ReleaseArtifact } from '@core/models/release.model';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { type ReleaseArtifact, releaseOsLabel } from '@core/models/release.model';
 import { ReleaseStore } from '@core/stores/release.store';
+import { APP_VERSION } from '@core/version';
 import { TuiButton } from '@taiga-ui/core';
 
 @Component({
@@ -26,6 +27,14 @@ export class AppSettingsComponent {
 	protected readonly os = this.releaseStore.os;
 
 	protected readonly osLabel = (): string => releaseOsLabel(this.os());
+
+	/** Версия текущей сборки (из package.json) — показываем в подсказке. */
+	protected readonly appVersion = APP_VERSION;
+
+	/** Версия последнего доступного релиза (манифест → GitHub → текущая сборка). */
+	protected readonly releaseVersion = computed(
+		() => this.releaseStore.availableVersion() ?? APP_VERSION,
+	);
 
 	protected onCheck(): void {
 		void this.releaseStore.refresh();

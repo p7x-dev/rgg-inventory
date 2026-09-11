@@ -3,6 +3,7 @@ import { computed, DestroyRef, effect, inject, Injectable, signal } from '@angul
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SettingsStore } from '@core/stores/settings.store';
 import { isOverlayUrl } from '@core/utils/overlay';
+import { isTauri } from '@core/utils/platform';
 import { fromEvent, map } from 'rxjs';
 import { TauriWindowService } from './tauri-window.service';
 
@@ -17,13 +18,14 @@ export class AppShellService {
 	readonly overlayMode = signal(false);
 
 	/**
-	 * Фон главной страницы: прозрачный при включённом «Прозрачном фоне», иначе цвет оверлея.
-	 * При transparentBg подстраница показывает тёмный фон Taiga (#222), а не белый — тёмная
-	 * палитра форсируется в _theme.scss.
+	 * Фон главной страницы: прозрачный при включённом «Прозрачном фоне» или внутри Tauri
+	 * (окно уже transparent:true — так оверлей чисто ловится в OBS без чёрных подложек),
+	 * иначе цвет оверлея. При transparentBg подстраница показывает тёмный фон Taiga (#222),
+	 * а не белый — тёмная палитра форсируется в _theme.scss.
 	 */
 	readonly appBackground = computed(() => {
 		const overlay = this.settingsStore.overlay();
-		return overlay.transparentBg ? 'transparent' : overlay.overlayColor;
+		return overlay.transparentBg || isTauri() ? 'transparent' : overlay.overlayColor;
 	});
 
 	private readonly destroyRef = inject(DestroyRef);
@@ -52,7 +54,10 @@ export class AppShellService {
 		// чтобы не оставалось чёрных подложек при смене цвета фона.
 		effect(() => {
 			const overlay = this.settingsStore.overlay();
-			const popup = overlay.transparentBg ? 'rgba(18, 14, 28, 0.95)' : overlay.overlayColor;
+			const popup =
+				overlay.transparentBg || isTauri()
+					? 'rgba(18, 14, 28, 0.95)'
+					: overlay.overlayColor;
 			this.document.documentElement.style.setProperty('--inv-popup-bg', popup);
 		});
 

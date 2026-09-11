@@ -25,6 +25,10 @@ function pick(exts) {
 	return files.find((name) => exts.some((ext) => name.toLowerCase().endsWith(ext)));
 }
 
+function pickAll(exts) {
+	return files.filter((name) => exts.some((ext) => name.toLowerCase().endsWith(ext)));
+}
+
 function entry(name) {
 	return name ? `/downloads/${encodeURIComponent(name)}` : undefined;
 }
@@ -34,7 +38,10 @@ const manifest = {
 	files: {
 		windows: entry(pick(['-setup.exe', '.exe', '.msi'])),
 		macos: entry(pick(['.dmg', '.app.tar.gz'])),
-		linux: entry(pick(['.AppImage', '.deb', '.rpm'])),
+		// Linux: все собранные форматы списком (0.2.0+); пустой список не включаем.
+		...(pickAll(['.AppImage', '.deb', '.rpm']).length > 0
+			? { linux: pickAll(['.AppImage', '.deb', '.rpm']).map((name) => entry(name)).filter(Boolean) }
+			: {}),
 	},
 	updatedAt: new Date().toISOString(),
 };

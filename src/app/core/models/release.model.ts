@@ -33,8 +33,9 @@ function readString(record: Record<string, unknown>, key: string, fallback: stri
 	return typeof value === 'string' && value.trim() !== '' ? value : fallback;
 }
 
-const ACCEPTED_URL = (url: string): boolean =>
-	url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://');
+function ACCEPTED_URL(url: string): boolean {
+	return url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://');
+}
 
 /** Читает одну ссылку или список ссылок для ОС, возвращает [] когда нет. */
 function readOsUrls(value: unknown): string[] {

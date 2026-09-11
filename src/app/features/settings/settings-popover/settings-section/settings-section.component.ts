@@ -12,4 +12,7 @@ export class SettingsSectionComponent {
 	readonly title = input.required<string>();
 
 	readonly open = input(false);
+
+	/** DOM-идентификатор `<details>`, чтобы можно было прокрутить к секции. */
+	readonly anchor = input<string>('');
 }

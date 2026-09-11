@@ -1,4 +1,9 @@
-<details class="popover-section" [open]="open()">
+<details
+	class="popover-section"
+	[open]="open()"
+	[id]="anchor() || null"
+	[attr.data-section]="title()"
+>
 	<summary class="popover-section-title">{{ title() }}</summary>
 	<div class="popover-section-body">
 		<ng-content />

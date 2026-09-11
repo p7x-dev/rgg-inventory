@@ -17,6 +17,7 @@ import { InventoryPopoverComponent } from '@app/features/overlay/inventory-popov
 import { BarControlsComponent } from '@app/features/overlay/overlay-bar/bar-controls/bar-controls.component';
 import { OverlayHeaderComponent } from '@app/features/overlay/overlay-header/overlay-header.component';
 import { SettingsPopoverComponent } from '@app/features/settings/settings-popover/settings-popover.component';
+import { SettingsNavigationService } from '@core/services/settings-navigation.service';
 import { HotkeyStore } from '@core/stores/hotkey.store';
 import { IconStore } from '@core/stores/icon.store';
 import { InventoryStore } from '@core/stores/inventory.store';
@@ -47,6 +48,7 @@ export class OverlayBarComponent {
 	private readonly iconStore = inject(IconStore);
 	private readonly hotkeyStore = inject(HotkeyStore);
 	private readonly dialogService = inject(TuiDialogService);
+	private readonly settingsNavigation = inject(SettingsNavigationService);
 	private readonly destroyRef = inject(DestroyRef);
 
 	protected readonly settingsOpen = signal(false);
@@ -108,6 +110,13 @@ export class OverlayBarComponent {
 	constructor() {
 		void this.inventoryStore.refresh();
 		void this.hotkeyStore.init();
+
+		// Внешний запрос (баннер «Доступно скачивание») открывает настройки.
+		effect(() => {
+			if (this.settingsNavigation.appSectionVersion() > 0) {
+				this.settingsOpen.set(true);
+			}
+		});
 
 		// Глобальный/клавиатурный хоткей открывает диалог инвентаря.
 		effect(() => {

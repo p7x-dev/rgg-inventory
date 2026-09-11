@@ -22,7 +22,11 @@
 			<app-timer-settings />
 		</app-settings-section>
 
-		<app-settings-section title="Приложение">
+		<app-settings-section
+			title="Приложение"
+			[anchor]="appSectionId"
+			[open]="appSectionOpen()"
+		>
 			<app-app-settings />
 		</app-settings-section>
 	</div>

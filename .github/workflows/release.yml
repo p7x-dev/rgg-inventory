@@ -94,7 +94,7 @@ jobs:
             VERSION="${GITHUB_REF#refs/tags/v}"
           fi
           if [ -z "$VERSION" ]; then
-            VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.1.0")
+            VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.2.0")
           fi
           # без ведущей 'v'
           echo "version=${VERSION#v}" >> "$GITHUB_OUTPUT"

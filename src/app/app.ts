@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { DownloadNoticeComponent } from '@app/features/download-notice/download-notice.component';
 import { OverlayBarComponent } from '@app/features/overlay/overlay-bar/overlay-bar.component';
 import { OverlayPageComponent } from '@app/features/overlay/overlay-page/overlay-page.component';
 import { TutorialComponent } from '@app/features/tutorial/tutorial.component';
@@ -8,7 +9,14 @@ import { TuiRoot } from '@taiga-ui/core';
 
 @Component({
 	selector: 'app-root',
-	imports: [TuiRoot, ThemeHostDirective, OverlayBarComponent, OverlayPageComponent, TutorialComponent],
+	imports: [
+		TuiRoot,
+		ThemeHostDirective,
+		OverlayBarComponent,
+		OverlayPageComponent,
+		TutorialComponent,
+		DownloadNoticeComponent,
+	],
 	templateUrl: './app.html',
 	styleUrl: './app.scss',
 })

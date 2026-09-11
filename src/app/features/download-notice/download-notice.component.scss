@@ -1,0 +1,53 @@
+.download-notice {
+	position: fixed;
+	right: 16px;
+	bottom: 16px;
+	z-index: 50;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	width: min(480px, calc(100vw - 32px));
+	padding: 14px 16px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 12px;
+	background: var(--inv-popup-bg, rgba(30, 20, 50, 0.95));
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(12px);
+}
+
+.download-notice-text {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.download-notice-title {
+	font-size: 15px;
+	line-height: 1.3;
+}
+
+.download-notice-subtitle {
+	color: var(--tui-text-2);
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.download-notice-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+@media (width <= 560px) {
+	.download-notice {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.download-notice-actions {
+		justify-content: space-between;
+	}
+}
