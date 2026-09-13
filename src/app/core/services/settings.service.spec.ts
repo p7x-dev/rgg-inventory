@@ -1,5 +1,5 @@
-import { DEFAULT_SETTINGS } from '@core/models/settings.model';
-import { parseSettings } from '@core/stores/settings.store';
+import { DEFAULT_APP_MODE, DEFAULT_SETTINGS } from '@core/models/settings.model';
+import { parseEnvelope, parseSettings } from '@core/stores/settings.store';
 import { describe, expect, it } from 'vitest';
 
 describe('parseSettings', () => {
@@ -67,5 +67,42 @@ describe('parseSettings', () => {
 		expect(settings.overlay.slotSize).toBe(DEFAULT_SETTINGS.overlay.slotSize);
 		expect(settings.customDesign).toBeNull();
 		expect(settings.icons).toEqual({});
+	});
+});
+
+describe('parseEnvelope', () => {
+	it('падает на дефолты при пустом хранилище', () => {
+		const envelope = parseEnvelope(null);
+		expect(envelope.mode).toBe(DEFAULT_APP_MODE);
+		expect(envelope.profiles.rggland).toEqual(DEFAULT_SETTINGS);
+		expect(envelope.profiles.solo).toEqual(DEFAULT_SETTINGS);
+	});
+
+	it('мигрирует старый плоский формат в rggland-профиль', () => {
+		const envelope = parseEnvelope(
+			JSON.stringify({
+				activeSource: 'rggland',
+				sources: { rggland: { nick: 'bradhi' } },
+			}),
+		);
+		expect(envelope.mode).toBe('rggland');
+		expect(envelope.profiles.rggland.activeSource).toBe('rggland');
+		expect(envelope.profiles.rggland.sources.rggland.nick).toBe('bradhi');
+		expect(envelope.profiles.solo.activeSource).toBe(DEFAULT_SETTINGS.activeSource);
+	});
+
+	it('читает профили по режимам', () => {
+		const envelope = parseEnvelope(
+			JSON.stringify({
+				mode: 'solo',
+				profiles: {
+					rggland: { activeSource: 'rggland', sources: { rggland: { nick: 'a' } } },
+					solo: { activeSource: 'sheets', sources: { sheets: { spreadsheetId: 'zzz' } } },
+				},
+			}),
+		);
+		expect(envelope.mode).toBe('solo');
+		expect(envelope.profiles.solo.activeSource).toBe('sheets');
+		expect(envelope.profiles.solo.sources.sheets.spreadsheetId).toBe('zzz');
 	});
 });

@@ -12,4 +12,6 @@ export interface PopoverItem {
 	entry: InventoryEntry;
 	icon: string | null;
 	categoryId: string;
+	/** Скрыть вторичный текст (настройка «показывать заметки»). */
+	hideNote?: boolean;
 }

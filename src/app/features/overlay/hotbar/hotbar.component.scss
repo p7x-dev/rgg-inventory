@@ -1,0 +1,29 @@
+:host {
+	display: block;
+}
+
+:host(.hotbar--raised) {
+	position: fixed;
+	top: var(--hotbar-top);
+	left: var(--hotbar-left);
+	z-index: 90000;
+	width: var(--hotbar-width);
+	height: var(--hotbar-height);
+}
+
+:host(.hotbar--raised) .hotbar {
+	height: 100%;
+}
+
+.hotbar {
+	display: grid;
+	gap: var(--inv-slot-gap);
+	grid-template-columns: repeat(var(--inv-cols, 9), minmax(0, var(--inv-slot-size)));
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.hotbar-slot {
+	width: var(--inv-slot-size);
+	height: var(--inv-slot-size);
+}

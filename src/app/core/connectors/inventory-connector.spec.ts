@@ -8,7 +8,6 @@ describe('normalizeInventoryJson', () => {
 			player: 'bradhi',
 			coins: 100,
 			tears: 50,
-			notes: 'x',
 			categories: [{ id: 'items', title: 'Обычные предметы', entries: [{ id: 'pauk', name: 'Паук' }] }],
 			fetchedAt: '2026-01-01',
 		});

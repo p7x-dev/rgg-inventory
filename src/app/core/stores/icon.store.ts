@@ -1,5 +1,6 @@
-import type { InventoryEntry } from '@core/models/inventory.model';
+import type { InventoryCategoryId, InventoryEntry } from '@core/models/inventory.model';
 import { inject } from '@angular/core';
+import { rggCategoryIcon, rggItemIcon } from '@core/icons/rgg-icons';
 import { SettingsStore } from '@core/stores/settings.store';
 import { signalStore, withMethods } from '@ngrx/signals';
 import { unzipSync } from 'fflate';
@@ -52,11 +53,21 @@ export const IconStore = signalStore(
 	withMethods((store, settingsStore = inject(SettingsStore)) => {
 		const icons = (): Record<string, string> => settingsStore.icons();
 
-		/** Иконка для записи: персональная иконка предмета > иконка из источника > null. */
-		const resolveIcon = (entry: InventoryEntry): string | null => {
+		/** Иконка для записи: персональная > из источника > встроенный пак (по типу/имени). */
+		const resolveIcon = (entry: InventoryEntry, categoryId?: InventoryCategoryId): string | null => {
 			const personal = icons()[entry.name];
-			return personal ?? entry.icon ?? null;
+			if (personal) {
+				return personal;
+			}
+			if (entry.icon) {
+				return entry.icon;
+			}
+			return rggItemIcon(entry.name, entry.type, categoryId);
 		};
+
+		/** Иконка категории (для слотов хотбара по категориям). */
+		const resolveCategoryIcon = (categoryId: InventoryCategoryId): string | null =>
+			rggCategoryIcon(categoryId);
 
 		const setIcon = (itemName: string, icon: string): void => {
 			settingsStore.updateWith((current) => ({
@@ -75,6 +86,7 @@ export const IconStore = signalStore(
 
 		return {
 			resolveIcon,
+			resolveCategoryIcon,
 			setIcon,
 			clearIcon,
 			/** Импорт zip-архива; имена файлов сопоставляются с именами предметов. */

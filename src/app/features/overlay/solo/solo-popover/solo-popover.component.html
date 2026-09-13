@@ -1,0 +1,90 @@
+<div class="popover">
+	@if (selectedRow(); as row) {
+		<section class="details">
+			<header class="details-header">
+				<button
+					tuiButton
+					type="button"
+					appearance="flat"
+					iconStart="@tui.arrow-left"
+					class="details-back"
+					aria-label="Назад к списку"
+					(click)="onBack()"
+				></button>
+				<h2 class="details-title">{{ row.game }}</h2>
+				<button
+					tuiButton
+					type="button"
+					appearance="flat"
+					iconStart="@tui.x"
+					class="details-close"
+					aria-label="Закрыть"
+					(click)="onClose()"
+				></button>
+			</header>
+
+			<div class="details-body">
+				@if (selectedIsCurrent()) {
+					<span class="game-badge">сейчас</span>
+				}
+
+				<span
+					class="details-action"
+					[class.game-action--completed]="row.action === 'completed'"
+					[class.game-action--skip]="row.action === 'skip'"
+					[class.game-action--reroll]="row.action === 'reroll'"
+				>{{ actionLabel[row.action] }}</span>
+
+				@if (row.reason) {
+					<div class="details-block">
+						<span class="details-label">Причина</span>
+						<p class="details-row">{{ row.reason }}</p>
+					</div>
+				}
+
+				@if (row.description) {
+					<div class="details-block">
+						<span class="details-label">Описание</span>
+						<p class="details-row">{{ row.description }}</p>
+					</div>
+				}
+			</div>
+		</section>
+	} @else {
+		<header class="popover-header">
+			<h2 class="popover-title">{{ shortName() }} — {{ platform() }}</h2>
+			<button tuiButton type="button" appearance="flat" iconStart="@tui.x" class="popover-close" aria-label="Закрыть" (click)="onClose()"></button>
+		</header>
+
+		<div class="popover-body">
+			@if (rows().length === 0) {
+				<p class="empty">На этой платформе пока нет записей</p>
+			} @else {
+				<ul class="games">
+					@for (row of rows(); track row.game) {
+						<li
+							class="game"
+							[class.game--current]="row.game === currentGame()"
+							(click)="onSelectRow(row)"
+						>
+							@if (row.game === currentGame()) {
+								<span class="game-badge">сейчас</span>
+							}
+							<span class="game-name">{{ row.game }}</span>
+							<span class="game-action" [class.game-action--completed]="row.action === 'completed'" [class.game-action--skip]="row.action === 'skip'" [class.game-action--reroll]="row.action === 'reroll'">{{ actionLabel[row.action] }}</span>
+							@if (row.reason) {
+								<span class="game-reason">{{ row.reason }}</span>
+							}
+						</li>
+					}
+				</ul>
+			}
+		</div>
+
+		<footer class="popover-footer">
+			<span class="foot-stat">Пройдено: {{ stats().completed }}</span>
+			<span class="foot-stat">Пропущено: {{ stats().skip }}</span>
+			<span class="foot-stat">Реролльнуто: {{ stats().reroll }}</span>
+		</footer>
+	}
+</div>

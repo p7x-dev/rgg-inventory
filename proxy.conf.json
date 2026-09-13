@@ -1,0 +1,27 @@
+/**
+ * Dev-прокси Angular dev-сервера: обходит CORS браузера при обращении
+ * с http://localhost:4200 к внешним https-хостам (rgg.land, bot.rgg.land).
+ * Пути без префикса /rgg-api и /rgg-bot в проде не используются —
+ * там приложение ходит напрямую по https.
+ */
+{
+	"/rgg-api": {
+		"target": "https://rgg.land",
+		"secure": true,
+		"changeOrigin": true,
+		"logLevel": "debug",
+		"pathRewrite": {
+			"^/rgg-api": ""
+		}
+	},
+	"/rgg-bot": {
+		"target": "https://bot.rgg.land",
+		"secure": true,
+		"changeOrigin": true,
+		"ws": true,
+		"logLevel": "debug",
+		"pathRewrite": {
+			"^/rgg-bot": ""
+		}
+	}
+}

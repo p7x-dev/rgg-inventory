@@ -1,0 +1,68 @@
+.slot {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-width: 0;
+	height: 100%;
+	min-height: 0;
+	padding: 0;
+	border: var(--inv-slot-border-width) solid var(--inv-slot-border-color);
+	border-radius: var(--inv-border-radius);
+	background-color: var(--inv-slot-bg);
+	color: var(--inv-text);
+	cursor: pointer;
+	transition:
+		background-color 0.15s ease,
+		border-color 0.15s ease,
+		box-shadow 0.15s ease;
+
+	&:hover,
+	&:focus-visible {
+		border-color: var(--inv-accent);
+		box-shadow: 0 0 0 1px var(--inv-accent);
+		outline: none;
+	}
+}
+
+.slot-drag-over {
+	border-color: var(--inv-accent);
+	background-color: var(--inv-slot-hover-bg);
+	box-shadow: 0 0 0 1px var(--inv-accent), 0 0 12px rgba(0, 0, 0, 0.25);
+}
+
+.slot-icon {
+	object-fit: contain;
+	width: 78%;
+	height: 78%;
+	pointer-events: none;
+	user-select: none;
+}
+
+.slot-empty {
+	border-style: dashed;
+	opacity: 0.55;
+	background-color: transparent;
+}
+
+.slot-fallback {
+	font-weight: 700;
+	font-size: 0.85em;
+	font-family: var(--inv-font);
+	line-height: 1;
+	opacity: 0.9;
+	user-select: none;
+}
+
+.slot-count {
+	position: absolute;
+	right: 2px;
+	bottom: 1px;
+	color: var(--inv-text);
+	font-weight: 800;
+	font-size: 0.7em;
+	line-height: 1;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.6);
+	user-select: none;
+}

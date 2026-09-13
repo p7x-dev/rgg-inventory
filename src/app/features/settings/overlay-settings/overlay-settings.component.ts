@@ -26,6 +26,10 @@ export class OverlaySettingsComponent {
 		this.updateOverlay({ cols: value });
 	}
 
+	protected setRows(value: number): void {
+		this.updateOverlay({ rows: value });
+	}
+
 	protected setSlotSize(value: number): void {
 		this.updateOverlay({ slotSize: value });
 	}

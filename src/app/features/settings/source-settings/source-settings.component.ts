@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { InventoryStore } from '@core/stores/inventory.store';
 import { SettingsStore } from '@core/stores/settings.store';
+import { SoloStore } from '@core/stores/solo.store';
+import { SettingsSwitchComponent } from '@shared/ui/settings-switch/settings-switch.component';
 import {
 	TuiButton,
 	TuiDataList,
@@ -36,6 +38,7 @@ type SourceOption = (typeof SOURCE_OPTIONS)[number];
 		TuiDropdown,
 		TuiDropdownOpen,
 		TuiOption,
+		SettingsSwitchComponent,
 	],
 	templateUrl: './source-settings.component.html',
 	styleUrl: './source-settings.component.scss',
@@ -44,6 +47,9 @@ type SourceOption = (typeof SOURCE_OPTIONS)[number];
 export class SourceSettingsComponent {
 	private readonly settingsStore = inject(SettingsStore);
 	private readonly inventoryStore = inject(InventoryStore);
+	private readonly soloStore = inject(SoloStore);
+
+	protected readonly mode = computed(() => this.settingsStore.mode());
 
 	protected readonly activeSource = this.settingsStore.activeSource;
 
@@ -70,6 +76,18 @@ export class SourceSettingsComponent {
 
 	protected async loadNow(): Promise<void> {
 		this.loadStatus.set('loading');
+		if (this.mode() === 'solo') {
+			const result = await this.soloStore.refresh();
+			if (result.ok) {
+				this.loadStatus.set('ok');
+				const total = result.data.categories.reduce((sum, category) => sum + category.rows.length, 0);
+				this.loadMessage.set(`Загружено: платформ ${result.data.categories.length}, игр: ${total}`);
+			} else {
+				this.loadStatus.set('error');
+				this.loadMessage.set(result.error);
+			}
+			return;
+		}
 		const result: InventoryLoadResult = await this.inventoryStore.refresh();
 		if (result.ok) {
 			this.loadStatus.set('ok');
@@ -84,7 +102,17 @@ export class SourceSettingsComponent {
 	protected updateRgglandNick(value: string): void {
 		this.settingsStore.updateWith((current) => ({
 			...current,
-			sources: { ...current.sources, rggland: { nick: value } },
+			sources: { ...current.sources, rggland: { ...current.sources.rggland, nick: value } },
+		}));
+	}
+
+	protected toggleRgglandFlag(flag: 'showItemTypes' | 'showNotes'): void {
+		this.settingsStore.updateWith((current) => ({
+			...current,
+			sources: {
+				...current.sources,
+				rggland: { ...current.sources.rggland, [flag]: !current.sources.rggland[flag] },
+			},
 		}));
 	}
 
@@ -94,6 +122,16 @@ export class SourceSettingsComponent {
 			sources: {
 				...current.sources,
 				sheets: { ...current.sources.sheets, ...config },
+			},
+		}));
+	}
+
+	protected updateSolo(config: Partial<{ spreadsheetId: string; gid: string }>): void {
+		this.settingsStore.updateWith((current) => ({
+			...current,
+			sources: {
+				...current.sources,
+				solo: { ...current.sources.solo, ...config },
 			},
 		}));
 	}

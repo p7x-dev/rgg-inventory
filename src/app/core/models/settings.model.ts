@@ -1,4 +1,4 @@
-import type { IconMap, InventorySourceId } from './inventory.model';
+import type { IconMap, InventoryCategoryId, InventorySourceId } from './inventory.model';
 import type { DesignLayout, ThemePresetId, ThemeTokens } from './theme.model';
 
 /** Колонки таблицы Google Sheets. */
@@ -12,6 +12,10 @@ export interface SheetColumns {
 /** Настройки источников данных инвентаря. */
 export interface RgglandSourceConfig {
 	nick: string;
+	/** Показывать типы предметов (Предмет/Оружие/Зелье/...) в списке. */
+	showItemTypes: boolean;
+	/** Показывать вторичный текст предмета (например «Выкопано в садике»). */
+	showNotes: boolean;
 }
 
 export interface SheetsSourceConfig {
@@ -25,10 +29,17 @@ export interface LocalSourceConfig {
 	json: string;
 }
 
+/** Solo RGG: Google-таблица стримера (платформы с играми). */
+export interface SoloSourceConfig {
+	spreadsheetId: string;
+	gid: string;
+}
+
 export interface SourceConfigs {
 	rggland: RgglandSourceConfig;
 	sheets: SheetsSourceConfig;
 	local: LocalSourceConfig;
+	solo: SoloSourceConfig;
 }
 
 /** Таймер: локальный + опционально привязка к боту RGG. */
@@ -89,10 +100,31 @@ export type HotbarBlockId = 'profile' | 'inventory' | 'controls';
 /** Стандартный порядок блоков хотбара. */
 export const DEFAULT_HOTBAR_ORDER: HotbarBlockId[] = ['profile', 'inventory', 'controls'];
 
+/**
+ * Слот хотбара (ячейка в ряду оверлея).
+ * По умолчанию слоты = категории инвентаря в порядке их следования у стримера:
+ * показываем иконку категории и количество предметов. Если стример перетащит
+ * в слот конкретный предмет (drag&drop из попапа) — слот «закрепляется» за ним.
+ */
+export type HotbarSlot =
+	| {
+		kind: 'category';
+		categoryId: InventoryCategoryId;
+	}
+	| {
+		kind: 'item';
+		/** Стабильный id записи (slug имени). */
+		itemId: string;
+		/** Имя для восстановления иконки/названия без перезагрузки источника. */
+		itemName: string;
+	};
+
 /** Настройки оверлея инвентаря. */
 export interface OverlaySettings {
 	/** Слотов в одной полосе. */
 	cols: number;
+	/** Сколько полос показывать в хотбаре. */
+	rows: number;
 	/** Размер слота в px (для пресетных тем). */
 	slotSize: number;
 	/** Прозрачный фон окна. */
@@ -117,6 +149,12 @@ export interface OverlaySettings {
 	expandEnabled: boolean;
 	/** Пользовательский порядок блоков хотбара. */
 	hotbarOrder: HotbarBlockId[];
+	/**
+	 * Слоты хотбара (cols × rows ячеек). null — пустая ячейка.
+	 * Пустой массив = по умолчанию: категории инвентаря в порядке их следования,
+	 * с иконкой и количеством; остальные ячейки сетки остаются пустыми.
+	 */
+	hotbarSlots: (HotbarSlot | null)[];
 }
 
 export interface AppSettings {
@@ -137,11 +175,29 @@ export interface AppSettings {
 	icons: IconMap;
 }
 
+/** Режим оверлея: RGG Land (инвентарь с монетками/слёзами) или Solo RGG (платформы с играми). */
+export type AppMode = 'rggland' | 'solo';
+
+export const APP_MODES: readonly AppMode[] = ['rggland', 'solo'];
+
+export const DEFAULT_APP_MODE: AppMode = 'rggland';
+
+/**
+ * Полный набор настроек оверлея. У каждого режима свой профиль (источник, оверлей,
+ * тема, таймер); переключение режима подменяет активный профиль целиком.
+ */
+export interface SettingsEnvelope {
+	mode: AppMode;
+	profiles: Record<AppMode, AppSettings>;
+}
+
 export const DEFAULT_SETTINGS: AppSettings = {
 	activeSource: 'local',
 	sources: {
 		rggland: {
 			nick: '',
+			showItemTypes: true,
+			showNotes: true,
 		},
 		sheets: {
 			spreadsheetId: '',
@@ -155,6 +211,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
 		},
 		local: {
 			json: '',
+		},
+		solo: {
+			spreadsheetId: '',
+			gid: '',
 		},
 	},
 	timer: {
@@ -170,6 +230,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
 	},
 	overlay: {
 		cols: 9,
+		rows: 2,
 		slotSize: 56,
 		transparentBg: true,
 		overlayColor: '#120d1c',
@@ -182,6 +243,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
 		expandEnabled: false,
 		pipEnabled: true,
 		hotbarOrder: DEFAULT_HOTBAR_ORDER,
+		hotbarSlots: [],
 	},
 	themePreset: 'rgg-retro',
 	customDesign: null,
@@ -190,3 +252,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
 	activeSavedPresetId: null,
 	icons: {},
 };
+
+/** Дефолтный envelope: режим RGG Land с двумя одинаковыми заготовками профилей. */
+export function defaultSettingsEnvelope(): SettingsEnvelope {
+	return {
+		mode: DEFAULT_APP_MODE,
+		profiles: {
+			rggland: structuredClone(DEFAULT_SETTINGS),
+			solo: structuredClone(DEFAULT_SETTINGS),
+		},
+	};
+}

@@ -9,20 +9,28 @@
 			[title]="playerName()"
 			[coins]="coins()"
 			[tears]="tears()"
-			[showCurrencies]="showCurrencies()"
+			[showCurrencies]="showCurrencies() && !soloMode()"
+			[coinIcon]="soloMode() ? null : coinIcon()"
+			[tearIcon]="soloMode() ? null : tearIcon()"
 		/>
 
 		<div class="bar-inventory-block">
-			<app-inventory-board
-				class="bar-inventory"
-				[items]="items()"
-				[designMode]="designMode()"
-				[design]="design()"
-				[cols]="overlaySettings().cols"
-				[visibleRows]="visibleRows()"
-				[selectedIndex]="selectedSlot()"
-				(slotSelect)="setSelectedSlot($event)"
-			/>
+			@if (soloMode()) {
+				<app-solo-hotbar class="bar-inventory" (platformSelect)="openSoloPlatform($event)" />
+			} @else if (designMode()) {
+				<app-inventory-board
+					class="bar-inventory"
+					[items]="items()"
+					[designMode]="designMode()"
+					[design]="design()"
+					[cols]="overlaySettings().cols"
+					[visibleRows]="visibleRows()"
+					[selectedIndex]="selectedSlot()"
+					(slotSelect)="setSelectedSlot($event)"
+				/>
+			} @else {
+				<app-hotbar class="bar-inventory" />
+			}
 		</div>
 
 		<app-bar-controls
@@ -56,4 +64,10 @@
 
 <ng-template #inventoryDialog let-completeWith="completeWith">
 	<app-inventory-popover class="tui-backdrop-hidden" (close)="completeWith?.()" />
+</ng-template>
+
+<ng-template #soloDialog let-completeWith="completeWith">
+	@if (activeSoloCategory(); as category) {
+		<app-solo-popover class="tui-backdrop-hidden" [category]="category" (close)="completeWith?.()" />
+	}
 </ng-template>

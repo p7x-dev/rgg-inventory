@@ -11,6 +11,8 @@ export interface InventoryEntry {
 	/** Стабильный идентификатор (slug имени). */
 	id: string;
 	name: string;
+	/** Тип предмета (Предмет/Оружие/Зелье/... по банку RGG Land). */
+	type?: string;
 	/** Описание предмета (тултип), если источник даёт. */
 	description?: string;
 	/** Вторичный текст (например «Выкопано в садике»). */
@@ -31,7 +33,6 @@ export interface InventoryData {
 	player: string;
 	coins: number;
 	tears: number;
-	notes: string;
 	categories: InventoryCategory[];
 	fetchedAt: string;
 	/** Индекс «выбранного» слота в плоском списке (по рядам), если источник даёт. */

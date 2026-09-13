@@ -1,0 +1,23 @@
+<div
+	class="slot"
+	[class.slot-drag-over]="dragOver()"
+	[class.slot-empty]="view()?.slot === null"
+	[draggable]="draggable()"
+	[attr.aria-label]="tooltip()"
+	[title]="tooltip()"
+	(contextmenu)="onReset()"
+	(dragstart)="onDragStart($event)"
+>
+	@if (view(); as slot) {
+		@if (slot.slot !== null) {
+			@if (slot.icon) {
+				<img class="slot-icon" [src]="slot.icon" alt="" />
+			} @else {
+				<span class="slot-fallback">{{ slot.fallbackText }}</span>
+			}
+			@if (slot.slot.kind === 'category' || slot.count > 1) {
+				<span class="slot-count">×{{ slot.count }}</span>
+			}
+		}
+	}
+</div>

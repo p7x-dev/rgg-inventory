@@ -2,7 +2,12 @@
 	<h3 class="group-title">{{ label() }} · {{ items().length }}</h3>
 	<div class="group-items">
 		@for (item of items(); track item.entry.id) {
-			<app-inventory-item-card [entry]="item.entry" [icon]="item.icon" />
+			<app-inventory-item-card
+				[entry]="item.entry"
+				[icon]="item.icon"
+				[hideNote]="item.hideNote ?? false"
+				(selected)="itemSelect.emit($event)"
+			/>
 		}
 	</div>
 </section>

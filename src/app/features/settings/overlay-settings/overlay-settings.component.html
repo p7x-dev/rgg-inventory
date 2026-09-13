@@ -10,6 +10,14 @@
 		(valueChange)="setCols($event)"
 	/>
 	<app-settings-slider
+		label="Сколько полос в хотбаре"
+		[value]="overlay().rows"
+		[min]="1"
+		[max]="6"
+		[step]="1"
+		(valueChange)="setRows($event)"
+	/>
+	<app-settings-slider
 		label="Размер слота"
 		[value]="overlay().slotSize"
 		[min]="32"

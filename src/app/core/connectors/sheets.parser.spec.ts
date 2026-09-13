@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { categoryFromText, parseCsv, parseSheetCsv } from './sheets.parser';
+import { categoryFromText, parseCsv, parseSheetCsv, parseSoloCsv } from './sheets.parser';
 
 describe('parseCsv', () => {
 	it('парсит простые строки', () => {
@@ -89,5 +89,64 @@ describe('parseSheetCsv', () => {
 				'таблица',
 			),
 		).toThrow('пустая');
+	});
+});
+
+describe('parseSoloCsv', () => {
+	const CSV = [
+		'Платформа,Игра,Статус,Причина,Описание,Текущая',
+		'NES,Супер Марио 3,Пройдено,,Классика платформера,',
+		'NES,Battletoads,Пропущено через реролл,Слишком сложно,Знаменитый бобёр-переросток,',
+		'NES,Zelda,Пропущено,Не интересно,,',
+		'NES,Контра,Пройдено,,,',
+		'SMD,Соник 2,Реролльнуто,Рандом дал дубль,,',
+		'SMD,Алоха,Пройдено,,,да',
+	].join('\n');
+
+	it('собирает категории по платформам и считает статистику', () => {
+		const data = parseSoloCsv(CSV, {}, 'стример');
+
+		expect(data.player).toBe('стример');
+		expect(data.categories.map((category) => category.platform)).toEqual(['NES', 'SMD']);
+
+		const nes = data.categories[0];
+		expect(nes.stats).toEqual({ completed: 2, reroll: 1, skip: 1 });
+		expect(nes.rows).toHaveLength(4);
+
+		const smd = data.categories[1];
+		expect(smd.stats).toEqual({ completed: 1, reroll: 1, skip: 0 });
+		expect(smd.current?.game).toBe('Алоха');
+		expect(smd.current?.action).toBe('completed');
+	});
+
+	it('считает итоги по всем платформам', () => {
+		const data = parseSoloCsv(CSV);
+		expect(data.total).toEqual({ completed: 3, reroll: 2, skip: 1 });
+	});
+
+	it('подтягивает причину для скипа/реролла, для пройденных — нет', () => {
+		const data = parseSoloCsv(CSV);
+		const rows = data.categories.flatMap((category) => category.rows);
+		expect(rows.find((row) => row.game === 'Battletoads')?.reason).toBe('Слишком сложно');
+		expect(rows.find((row) => row.game === 'Соник 2')?.reason).toBe('Рандом дал дубль');
+		expect(rows.find((row) => row.game === 'Супер Марио 3')?.reason).toBeUndefined();
+	});
+
+	it('подтягивает описание игры, если колонка есть', () => {
+		const data = parseSoloCsv(CSV);
+		const rows = data.categories.flatMap((category) => category.rows);
+		expect(rows.find((row) => row.game === 'Супер Марио 3')?.description).toBe('Классика платформера');
+		expect(rows.find((row) => row.game === 'Battletoads')?.description).toBe('Знаменитый бобёр-переросток');
+		expect(rows.find((row) => row.game === 'Zelda')?.description).toBeUndefined();
+	});
+
+	it('кидает ошибку при отсутствии обязательных колонок', () => {
+		expect(() => parseSoloCsv('Платформа,Игра\nNES,Марио\n')).toThrow('Не найдены');
+	});
+
+	it('игнорирует строки с нераспознанным статусом', () => {
+		const data = parseSoloCsv(['Платформа,Игра,Статус', 'NES,Марио,Пройдено', 'NES,Хз,Начал проходить'].join('\n'));
+		expect(data.total.completed).toBe(1);
+		expect(data.categories.flatMap((category) => category.rows)).toHaveLength(1);
 	});
 });

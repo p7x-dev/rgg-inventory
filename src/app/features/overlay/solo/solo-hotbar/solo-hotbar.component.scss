@@ -1,0 +1,32 @@
+.solo-bar {
+	display: grid;
+	gap: var(--inv-slot-gap);
+	grid-template-columns: repeat(var(--inv-cols, 11), minmax(0, var(--inv-slot-size)));
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.solo-slot {
+	width: var(--inv-slot-size);
+	height: var(--inv-slot-size);
+}
+
+.solo-empty {
+	padding: 8px 14px;
+	font-size: 13px;
+	color: var(--inv-text-muted, #999);
+	opacity: 0.8;
+}
+
+.solo-error {
+	position: fixed;
+	top: 8px;
+	left: 50%;
+	z-index: 10;
+	padding: 6px 14px;
+	border-radius: 8px;
+	background: rgba(180, 40, 40, 0.85);
+	color: #fff;
+	font-size: 13px;
+	transform: translateX(-50%);
+}

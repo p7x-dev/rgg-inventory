@@ -1,0 +1,23 @@
+<div class="solo-bar" [style.--inv-cols]="categories().length || 1">
+	@if (error(); as message) {
+		<div class="solo-error" role="alert">{{ message }}</div>
+	}
+
+	@if (!categories().length) {
+		<div class="solo-empty">
+			@if (loading()) {
+				<span>Загрузка Solo-таблицы…</span>
+			} @else {
+				<span>Таблица пуста — добавьте платформы и игры</span>
+			}
+		</div>
+	}
+
+	@for (category of categories(); track category.platform) {
+		<app-solo-platform-slot
+			class="solo-slot"
+			[category]="category"
+			(activate)="platformSelect.emit(category)"
+		/>
+	}
+</div>

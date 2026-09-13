@@ -7,8 +7,8 @@ import type {
 } from '@core/models/inventory.model';
 import type { RgglandSourceConfig, SheetsSourceConfig } from '@core/models/settings.model';
 import { Injectable } from '@angular/core';
-import { httpGetText } from '@core/connectors/http.util';
-import { parseInventoryHtml, parseOverviewCurrencies, RGG_LAND_BASE } from '@core/connectors/rggland.parser';
+import { httpGetText, rggLandOrigin } from '@core/connectors/http.util';
+import { parseInventoryHtml, parseOverviewCurrencies } from '@core/connectors/rggland.parser';
 import { parseSheetCsv } from '@core/connectors/sheets.parser';
 import { INVENTORY_CATEGORY, parseCategoryId, slugify } from '@core/models/inventory.model';
 
@@ -90,7 +90,6 @@ export function normalizeInventoryJson(raw: unknown, player = 'стример'):
 			player,
 			coins: 0,
 			tears: 0,
-			notes: '',
 			categories: [...grouped.entries()]
 				.filter(([, list]) => list.length > 0)
 				.map(([id, list]) => ({
@@ -120,11 +119,11 @@ export class RgglandConnector implements InventoryConnector {
 		if (!nick) {
 			throw new Error('Укажите ник стримера на rgg.land');
 		}
-		const inventoryHtml = await httpGetText(`${RGG_LAND_BASE}/inventories/${encodeURIComponent(nick)}`);
+		const inventoryHtml = await httpGetText(`${rggLandOrigin()}/inventories/${encodeURIComponent(nick)}`);
 		const data = parseInventoryHtml(inventoryHtml, nick);
 
 		try {
-			const overviewHtml = await httpGetText(`${RGG_LAND_BASE}/inventories`);
+			const overviewHtml = await httpGetText(`${rggLandOrigin()}/inventories`);
 			const currencies = parseOverviewCurrencies(overviewHtml, nick);
 			data.coins = currencies.coins;
 			data.tears = currencies.tears;

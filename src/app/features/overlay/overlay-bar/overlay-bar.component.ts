@@ -1,5 +1,6 @@
 import type { TemplateRef } from '@angular/core';
 import type { SlotItem } from '@core/models/overlay.model';
+import type { SoloCategory } from '@core/models/solo.model';
 import type { DesignLayout } from '@core/models/theme.model';
 import {
 	ChangeDetectionStrategy,
@@ -12,16 +13,21 @@ import {
 	viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HotbarComponent } from '@app/features/overlay/hotbar/hotbar.component';
 import { InventoryBoardComponent } from '@app/features/overlay/inventory-board/inventory-board.component';
 import { InventoryPopoverComponent } from '@app/features/overlay/inventory-popover/inventory-popover.component';
 import { BarControlsComponent } from '@app/features/overlay/overlay-bar/bar-controls/bar-controls.component';
 import { OverlayHeaderComponent } from '@app/features/overlay/overlay-header/overlay-header.component';
+import { SoloHotbarComponent } from '@app/features/overlay/solo/solo-hotbar/solo-hotbar.component';
+import { SoloPopoverComponent } from '@app/features/overlay/solo/solo-popover/solo-popover.component';
 import { SettingsPopoverComponent } from '@app/features/settings/settings-popover/settings-popover.component';
+import { rggCoinIcon, rggTearIcon } from '@core/icons/rgg-icons';
 import { SettingsNavigationService } from '@core/services/settings-navigation.service';
 import { HotkeyStore } from '@core/stores/hotkey.store';
 import { IconStore } from '@core/stores/icon.store';
 import { InventoryStore } from '@core/stores/inventory.store';
 import { SettingsStore } from '@core/stores/settings.store';
+import { SoloStore } from '@core/stores/solo.store';
 import { overlayUrl } from '@core/utils/overlay';
 import { TuiButton, TuiDialogService, TuiDropdown, TuiDropdownOpen } from '@taiga-ui/core';
 import { finalize } from 'rxjs';
@@ -30,8 +36,11 @@ import { finalize } from 'rxjs';
 	selector: 'app-overlay-bar',
 	imports: [
 		BarControlsComponent,
+		HotbarComponent,
 		InventoryBoardComponent,
 		InventoryPopoverComponent,
+		SoloHotbarComponent,
+		SoloPopoverComponent,
 		OverlayHeaderComponent,
 		SettingsPopoverComponent,
 		TuiButton,
@@ -45,6 +54,7 @@ import { finalize } from 'rxjs';
 export class OverlayBarComponent {
 	private readonly settingsStore = inject(SettingsStore);
 	private readonly inventoryStore = inject(InventoryStore);
+	private readonly soloStore = inject(SoloStore);
 	private readonly iconStore = inject(IconStore);
 	private readonly hotkeyStore = inject(HotkeyStore);
 	private readonly dialogService = inject(TuiDialogService);
@@ -59,7 +69,15 @@ export class OverlayBarComponent {
 
 	protected readonly inventoryDialog = viewChild.required<TemplateRef<unknown>>('inventoryDialog');
 
+	/** Выбранная платформа Solo для попапа. */
+	protected readonly soloDialog = viewChild.required<TemplateRef<unknown>>('soloDialog');
+
+	/** Данные платформы, чей попап открыт (передаём через ng-template контекст). */
+	protected readonly activeSoloCategory = signal<SoloCategory | null>(null);
+
 	protected readonly selectedSlot = signal<number | null>(null);
+
+	protected readonly soloMode = computed(() => this.settingsStore.mode() === 'solo');
 
 	protected readonly items = computed<SlotItem[]>(() => {
 		return this.inventoryStore.entries().flatMap((category) =>
@@ -84,9 +102,15 @@ export class OverlayBarComponent {
 		this.designMode() ? this.settingsStore.customDesign() : null,
 	);
 
-	protected readonly playerName = computed(
-		() => (this.inventoryStore.data()?.player ?? this.settingsStore.settings().sources.rggland.nick) || 'Инвентарь',
-	);
+	protected readonly playerName = computed(() => {
+		if (this.soloMode()) {
+			return this.soloStore.data()?.player || 'Solo RGG';
+		}
+		return (
+			(this.inventoryStore.data()?.player ?? this.settingsStore.settings().sources.rggland.nick) ||
+			'Инвентарь'
+		);
+	});
 
 	protected readonly coins = computed(() => this.inventoryStore.data()?.coins ?? 0);
 
@@ -95,6 +119,10 @@ export class OverlayBarComponent {
 	protected readonly visibleRows = computed(() => 2);
 
 	protected readonly showCurrencies = computed(() => this.overlaySettings().showCurrencies);
+
+	protected readonly coinIcon = computed(() => (this.soloMode() ? null : rggCoinIcon()));
+
+	protected readonly tearIcon = computed(() => (this.soloMode() ? null : rggTearIcon()));
 
 	protected readonly showTimer = computed(() => this.overlaySettings().showTimer && this.hotkeyStore.timerOn());
 
@@ -109,6 +137,7 @@ export class OverlayBarComponent {
 
 	constructor() {
 		void this.inventoryStore.refresh();
+		void this.soloStore.refresh();
 		void this.hotkeyStore.init();
 
 		// Внешний запрос (баннер «Доступно скачивание») открывает настройки.
@@ -153,6 +182,15 @@ export class OverlayBarComponent {
 				takeUntilDestroyed(this.destroyRef),
 				finalize(() => this.inventoryOpen.set(false)),
 			)
+			.subscribe();
+	}
+
+	/** Открывает попап платформы Solo RGG. */
+	protected openSoloPlatform(category: SoloCategory): void {
+		this.activeSoloCategory.set(category);
+		this.dialogService
+			.open(this.soloDialog(), { size: 's', closable: false, dismissible: true })
+			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe();
 	}
 

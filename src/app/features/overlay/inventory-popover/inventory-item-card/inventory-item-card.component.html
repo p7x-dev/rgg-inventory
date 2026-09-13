@@ -1,10 +1,15 @@
-<div class="item" [title]="title()">
+<div class="item" [title]="title()" [draggable]="draggable()" (click)="onSelect()" (dragstart)="onDragStart($event)">
 	@if (icon()) {
 		<img class="item-icon" [src]="icon()" alt="" loading="lazy" />
 	} @else {
 		<span class="item-fallback">{{ entry().name.charAt(0).toUpperCase() }}</span>
 	}
-	<span class="item-name">{{ entry().name }}</span>
+	<div class="item-body">
+		<span class="item-name">{{ entry().name }}</span>
+		@if (description()) {
+			<span class="item-desc">{{ description() }}</span>
+		}
+	</div>
 	@if ((entry().quantity ?? 1) > 1) {
 		<span class="item-count">×{{ entry().quantity }}</span>
 	}

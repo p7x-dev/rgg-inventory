@@ -1,0 +1,93 @@
+.slot {
+	display: flex;
+	align-items: center;
+	position: relative;
+	flex-direction: column;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	padding: 4px;
+	border: var(--inv-slot-border-width) solid var(--inv-slot-border-color);
+	border-radius: var(--inv-border-radius);
+	background-color: var(--inv-slot-bg);
+	color: var(--inv-text);
+	cursor: pointer;
+	transition:
+		background-color 0.15s ease,
+		border-color 0.15s ease,
+		box-shadow 0.15s ease;
+
+	&:hover,
+	&:focus-visible {
+		border-color: var(--inv-accent);
+		box-shadow: 0 0 0 1px var(--inv-accent);
+		outline: none;
+	}
+}
+
+.slot-head {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	width: 100%;
+	gap: 4px;
+	justify-content: center;
+}
+
+.slot-icon {
+	width: 26px;
+	height: 26px;
+	flex-shrink: 0;
+	image-rendering: pixelated;
+	object-fit: contain;
+	opacity: 0.95;
+}
+
+.slot-platform {
+	flex-shrink: 0;
+	font-weight: 800;
+	font-size: 0.72em;
+	line-height: 1;
+	opacity: 0.95;
+}
+
+.slot-game {
+	overflow: hidden;
+	flex: 1;
+	font-size: 0.62em;
+	opacity: 0.75;
+	text-align: center;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.slot-stats {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	margin-top: 3px;
+}
+
+.slot-stat {
+	min-width: 9px;
+	padding: 0 2px;
+	border-radius: 4px;
+	font-weight: 800;
+	font-size: 0.68em;
+	line-height: 1.35;
+	text-align: center;
+	user-select: none;
+}
+
+.slot-stat--completed {
+	color: #7dffa0;
+}
+
+.slot-stat--skip {
+	color: #ffb3b3;
+}
+
+.slot-stat--reroll {
+	color: #ffd27d;
+}

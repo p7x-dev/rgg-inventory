@@ -1,7 +1,7 @@
 import type { BotTimerWidget, BotWsEvent, TimerSnapshot } from '@core/models/timer.model';
 import type { Subscription } from 'rxjs';
 import { computed, DestroyRef, effect, inject } from '@angular/core';
-import { httpGetText } from '@core/connectors/http.util';
+import { httpGetText, rggBotOrigin, rggBotWsUrl } from '@core/connectors/http.util';
 import { DEFAULT_TIMER_MODE } from '@core/models/settings.model';
 import { SettingsStore } from '@core/stores/settings.store';
 import { formatElapsed, hmsToMs, timerDisplayMs } from '@core/timer/timer-format';
@@ -319,8 +319,8 @@ export const TimerStore = signalStore(
 export function botWidget$(nick: string, timerName: string): Observable<BotTimerWidget> {
 	return defer(() => {
 		const encodedNick = encodeURIComponent(nick);
-		const namedUrl = `https://bot.rgg.land/${encodedNick}/timers/${encodeURIComponent(timerName)}`;
-		const defaultUrl = `https://bot.rgg.land/${encodedNick}`;
+		const namedUrl = `${rggBotOrigin()}/${encodedNick}/timers/${encodeURIComponent(timerName)}`;
+		const defaultUrl = `${rggBotOrigin()}/${encodedNick}`;
 		return from(httpGetText(namedUrl)).pipe(
 			catchError(() => from(httpGetText(defaultUrl))),
 			map((html) => parseBotTimerWidget(html, timerName)),
@@ -348,7 +348,7 @@ function botWatch(
 				return;
 			}
 			scheduled = true;
-			ws = new WebSocket('wss://bot.rgg.land/ws');
+			ws = new WebSocket(rggBotWsUrl());
 			ws.onmessage = (event: MessageEvent) => {
 				let payload: unknown;
 				try {

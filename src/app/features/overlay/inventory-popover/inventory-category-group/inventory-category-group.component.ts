@@ -1,5 +1,6 @@
+import type { InventoryEntry } from '@core/models/inventory.model';
 import type { PopoverItem } from '../inventory-popover.models';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { InventoryItemCardComponent } from '../inventory-item-card/inventory-item-card.component';
 
 @Component({
@@ -13,4 +14,6 @@ export class InventoryCategoryGroupComponent {
 	readonly label = input.required<string>();
 
 	readonly items = input.required<PopoverItem[]>();
+
+	readonly itemSelect = output<InventoryEntry>();
 }

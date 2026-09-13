@@ -6,8 +6,6 @@ const FIXTURE = `
 <html>
 <body>
 <script>window.__DATA = {x: 1};</script>
-<li class="MuiListSubheader-root MuiListSubheader-gutters mui-1fv16ue">Заметки</li>
-<p class="MuiTypography-root MuiTypography-body1 mui-db63ox">НЕВЕРОЯТНАЯ ШЛЯПА ВЕРНЕТСЯ.\n\n07.09.2026 В 3:20</p>
 <ul class="MuiList-root MuiList-padding MuiList-subheader mui-llfg3i">
 <li class="MuiListSubheader-root MuiListSubheader-gutters mui-1fv16ue">Эффекты</li>
 <li class="MuiListItem-root MuiListItem-padding mui-w2yvg3">
@@ -53,11 +51,10 @@ const FIXTURE = `
 `;
 
 describe('parseInventoryHtml', () => {
-	it('извлекает заметки, категории и записи в порядке RGG', () => {
+	it('извлекает категории и записи в порядке RGG', () => {
 		const data = parseInventoryHtml(FIXTURE, 'bradhi');
 
 		expect(data.player).toBe('bradhi');
-		expect(data.notes).toContain('НЕВЕРОЯТНАЯ ШЛЯПА');
 		expect(data.categories.map((category) => category.id)).toEqual(['effects', 'items', 'specials']);
 
 		const effects = data.categories[0];
@@ -67,15 +64,17 @@ describe('parseInventoryHtml', () => {
 		const items = data.categories[1];
 		expect(items.entries.map((entry) => entry.name)).toEqual(['Паук', 'Могвай']);
 		expect(items.entries[0].note).toBe('Выкопано в садике');
+		expect(items.entries[0].type).toBe('Предмет');
+		expect(items.entries[1].type).toBe('Предмет');
 
 		const specials = data.categories[2];
 		expect(specials.entries[0].name).toBe('Игра от Хоста');
+		expect(specials.entries[0].type).toBeUndefined();
 	});
 
 	it('игнорирует скрипты и не даёт пустых категорий', () => {
 		const data = parseInventoryHtml('<script>window.x = 1</script><div>пусто</div>', 'x');
 		expect(data.categories).toHaveLength(0);
-		expect(data.notes).toBe('');
 	});
 });
 

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { rggLandOrigin } from '@core/connectors/http.util';
 
 /** Иконки RGG с rgg.land: токены игроков и эмодзи. */
 export interface RggCatalogItem {
@@ -7,11 +8,9 @@ export interface RggCatalogItem {
 	source: 'token' | 'emote';
 }
 
-const RGG_LAND_BASE = 'https://rgg.land';
-
 /** URL токена-аватарки игрока на rgg.land. */
 export function playerTokenUrl(nick: string): string {
-	return `${RGG_LAND_BASE}/images/tokens/players/${encodeURIComponent(nick.toLowerCase())}.webp`;
+	return `${rggLandOrigin()}/images/tokens/players/${encodeURIComponent(nick.toLowerCase())}.webp`;
 }
 
 /** Извлекает имена эмодзи из главной страницы rgg.land. */
@@ -36,13 +35,13 @@ export class RggIconService {
 		}
 
 		try {
-			const response = await fetch(RGG_LAND_BASE);
+			const response = await fetch(rggLandOrigin());
 			if (response.ok) {
 				const html = await response.text();
 				for (const emote of extractEmotes(html)) {
 					catalog.push({
 						name: emote,
-						url: `${RGG_LAND_BASE}/images/emotes/${emote}/4x.avif`,
+						url: `${rggLandOrigin()}/images/emotes/${emote}/4x.avif`,
 						source: 'emote',
 					});
 				}

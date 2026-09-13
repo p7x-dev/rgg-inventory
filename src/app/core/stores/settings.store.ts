@@ -1,18 +1,25 @@
+import type { InventoryCategoryId } from '@core/models/inventory.model';
 import type {
+	AppMode,
 	AppSettings,
 	HotbarBlockId,
+	HotbarSlot,
 	SavedThemePreset,
+	SettingsEnvelope,
 	TimerCountdown,
 	TimerMode,
 } from '@core/models/settings.model';
 import type { DesignLayout, ThemeTokens } from '@core/models/theme.model';
 import { computed } from '@angular/core';
 import {
+	APP_MODES,
+	DEFAULT_APP_MODE,
 	DEFAULT_COUNTDOWN,
 	DEFAULT_HOTBAR_ORDER,
 	DEFAULT_SETTINGS,
 	DEFAULT_TIMER_DISPLAY,
 	DEFAULT_TIMER_MODE,
+	defaultSettingsEnvelope,
 } from '@core/models/settings.model';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 
@@ -97,6 +104,41 @@ export function readHotbarOrder(record: Record<string, unknown>, key: string): H
 	return list.length === valid.length ? list : [...DEFAULT_HOTBAR_ORDER];
 }
 
+/** Читает пользовательские слоты хотбара; невалидные записи отбрасываются. */
+export function readHotbarSlots(record: Record<string, unknown>, key: string): (HotbarSlot | null)[] {
+	const value = record[key];
+	if (!Array.isArray(value)) {
+		return [];
+	}
+	const slots: (HotbarSlot | null)[] = [];
+	for (const item of value) {
+		if (item === null) {
+			slots.push(null);
+			continue;
+		}
+		if (!isRecord(item)) {
+			continue;
+		}
+		const kind = item['kind'];
+		if (kind === 'category') {
+			const categoryId = item['categoryId'];
+			if (categoryId === 'effects' || categoryId === 'items' || categoryId === 'specials') {
+				slots.push({ kind: 'category', categoryId: categoryId as InventoryCategoryId });
+			}
+		} else if (kind === 'item') {
+			const itemId = typeof item['itemId'] === 'string' ? item['itemId'] : '';
+			const itemName = typeof item['itemName'] === 'string' ? item['itemName'] : '';
+			if (itemId && itemName) {
+				slots.push({ kind: 'item', itemId, itemName });
+			}
+		}
+		if (slots.length >= 24) {
+			break;
+		}
+	}
+	return slots;
+}
+
 export function isThemeTokens(value: unknown): value is ThemeTokens {
 	if (!isRecord(value)) {
 		return false;
@@ -147,7 +189,10 @@ export function readSavedPresets(value: unknown): SavedThemePreset[] {
 	return list;
 }
 
-/** Валидирующая загрузка настроек из localStorage: битые данные отбрасываются. */
+/**
+ * Парсит один набор настроек (профиль). Используется и для envelope-значений,
+ * и для миграции старого плоского формата (когда не было профилей).
+ */
 export function parseSettings(raw: string | null): AppSettings {
 	if (!raw) {
 		return structuredClone(DEFAULT_SETTINGS);
@@ -163,6 +208,7 @@ export function parseSettings(raw: string | null): AppSettings {
 		const sheetsRaw = isRecord(sourcesRaw['sheets']) ? sourcesRaw['sheets'] : {};
 		const columnsRaw = isRecord(sheetsRaw['columns']) ? sheetsRaw['columns'] : {};
 		const localRaw = isRecord(sourcesRaw['local']) ? sourcesRaw['local'] : {};
+		const soloRaw = isRecord(sourcesRaw['solo']) ? sourcesRaw['solo'] : {};
 		const timerRaw = isRecord(parsed['timer']) ? parsed['timer'] : {};
 		const botRaw = isRecord(timerRaw['bot']) ? timerRaw['bot'] : {};
 		const displayRaw = isRecord(timerRaw['display']) ? timerRaw['display'] : {};
@@ -184,6 +230,12 @@ export function parseSettings(raw: string | null): AppSettings {
 			sources: {
 				rggland: {
 					nick: readString(rgglandRaw, 'nick', DEFAULT_SETTINGS.sources.rggland.nick),
+					showItemTypes: readBoolean(
+						rgglandRaw,
+						'showItemTypes',
+						DEFAULT_SETTINGS.sources.rggland.showItemTypes,
+					),
+					showNotes: readBoolean(rgglandRaw, 'showNotes', DEFAULT_SETTINGS.sources.rggland.showNotes),
 				},
 				sheets: {
 					spreadsheetId: readString(
@@ -206,6 +258,10 @@ export function parseSettings(raw: string | null): AppSettings {
 				local: {
 					json: readString(localRaw, 'json', DEFAULT_SETTINGS.sources.local.json),
 				},
+				solo: {
+					spreadsheetId: readString(soloRaw, 'spreadsheetId', DEFAULT_SETTINGS.sources.solo.spreadsheetId),
+					gid: readString(soloRaw, 'gid', DEFAULT_SETTINGS.sources.solo.gid),
+				},
 			},
 			timer: {
 				localName: readString(timerRaw, 'localName', DEFAULT_SETTINGS.timer.localName),
@@ -225,6 +281,7 @@ export function parseSettings(raw: string | null): AppSettings {
 			},
 			overlay: {
 				cols: readNumber(overlayRaw, 'cols', DEFAULT_SETTINGS.overlay.cols, 1, 18),
+				rows: readNumber(overlayRaw, 'rows', DEFAULT_SETTINGS.overlay.rows, 1, 6),
 				slotSize: readNumber(overlayRaw, 'slotSize', DEFAULT_SETTINGS.overlay.slotSize, 32, 96),
 				transparentBg: readBoolean(overlayRaw, 'transparentBg', DEFAULT_SETTINGS.overlay.transparentBg),
 				overlayColor: readString(overlayRaw, 'overlayColor', DEFAULT_SETTINGS.overlay.overlayColor),
@@ -255,6 +312,7 @@ export function parseSettings(raw: string | null): AppSettings {
 				),
 				pipEnabled: readBoolean(overlayRaw, 'pipEnabled', DEFAULT_SETTINGS.overlay.pipEnabled),
 				hotbarOrder: readHotbarOrder(overlayRaw, 'hotbarOrder'),
+				hotbarSlots: readHotbarSlots(overlayRaw, 'hotbarSlots'),
 			},
 			themePreset: presets.includes(themePreset)
 				? (themePreset as AppSettings['themePreset'])
@@ -269,6 +327,175 @@ export function parseSettings(raw: string | null): AppSettings {
 		};
 	} catch {
 		return structuredClone(DEFAULT_SETTINGS);
+	}
+}
+
+/** Парсит JSON значения одного профиля (объект AppSettings, не строка JSON). */
+function parseProfileValue(value: unknown): AppSettings {
+	if (!isRecord(value)) {
+		return structuredClone(DEFAULT_SETTINGS);
+	}
+
+	const sourcesRaw = isRecord(value['sources']) ? value['sources'] : {};
+	const rgglandRaw = isRecord(sourcesRaw['rggland']) ? sourcesRaw['rggland'] : {};
+	const sheetsRaw = isRecord(sourcesRaw['sheets']) ? sourcesRaw['sheets'] : {};
+	const columnsRaw = isRecord(sheetsRaw['columns']) ? sheetsRaw['columns'] : {};
+	const localRaw = isRecord(sourcesRaw['local']) ? sourcesRaw['local'] : {};
+	const soloRaw = isRecord(sourcesRaw['solo']) ? sourcesRaw['solo'] : {};
+	const timerRaw = isRecord(value['timer']) ? value['timer'] : {};
+	const botRaw = isRecord(timerRaw['bot']) ? timerRaw['bot'] : {};
+	const displayRaw = isRecord(timerRaw['display']) ? timerRaw['display'] : {};
+	const overlayRaw = isRecord(value['overlay']) ? value['overlay'] : {};
+	const designRaw = value['customDesign'];
+	const savedPresets = readSavedPresets(value['savedPresets']);
+	const sourceIdValue = value['activeSavedPresetId'];
+	const activeSavedPresetId = typeof sourceIdValue === 'string' ? sourceIdValue : '';
+
+	const sourceIds: readonly string[] = ['rggland', 'sheets', 'local'];
+	const presets: readonly string[] = ['rgg-retro', 'minecraft', 'glass', 'custom'];
+	const activeSource = typeof value['activeSource'] === 'string' ? value['activeSource'] : '';
+	const themePreset = typeof value['themePreset'] === 'string' ? value['themePreset'] : '';
+
+	return {
+		activeSource: sourceIds.includes(activeSource)
+			? (activeSource as AppSettings['activeSource'])
+			: DEFAULT_SETTINGS.activeSource,
+		sources: {
+			rggland: {
+				nick: readString(rgglandRaw, 'nick', DEFAULT_SETTINGS.sources.rggland.nick),
+				showItemTypes: readBoolean(rgglandRaw, 'showItemTypes', DEFAULT_SETTINGS.sources.rggland.showItemTypes),
+				showNotes: readBoolean(rgglandRaw, 'showNotes', DEFAULT_SETTINGS.sources.rggland.showNotes),
+			},
+			sheets: {
+				spreadsheetId: readString(
+					sheetsRaw,
+					'spreadsheetId',
+					DEFAULT_SETTINGS.sources.sheets.spreadsheetId,
+				),
+				gid: readString(sheetsRaw, 'gid', DEFAULT_SETTINGS.sources.sheets.gid),
+				columns: {
+					name: readString(columnsRaw, 'name', DEFAULT_SETTINGS.sources.sheets.columns.name),
+					category: readString(columnsRaw, 'category', DEFAULT_SETTINGS.sources.sheets.columns.category),
+					note: readString(columnsRaw, 'note', DEFAULT_SETTINGS.sources.sheets.columns.note),
+					description: readString(
+						columnsRaw,
+						'description',
+						DEFAULT_SETTINGS.sources.sheets.columns.description,
+					),
+				},
+			},
+			local: {
+				json: readString(localRaw, 'json', DEFAULT_SETTINGS.sources.local.json),
+			},
+			solo: {
+				spreadsheetId: readString(soloRaw, 'spreadsheetId', DEFAULT_SETTINGS.sources.solo.spreadsheetId),
+				gid: readString(soloRaw, 'gid', DEFAULT_SETTINGS.sources.solo.gid),
+			},
+		},
+		timer: {
+			localName: readString(timerRaw, 'localName', DEFAULT_SETTINGS.timer.localName),
+			bot: {
+				enabled: readBoolean(botRaw, 'enabled', DEFAULT_SETTINGS.timer.bot.enabled),
+				nick: readString(botRaw, 'nick', DEFAULT_SETTINGS.timer.bot.nick),
+				timerName: readString(botRaw, 'timerName', DEFAULT_SETTINGS.timer.bot.timerName),
+			},
+			display: {
+				hours: readBoolean(displayRaw, 'hours', DEFAULT_TIMER_DISPLAY.hours),
+				minutes: readBoolean(displayRaw, 'minutes', DEFAULT_TIMER_DISPLAY.minutes),
+				seconds: readBoolean(displayRaw, 'seconds', DEFAULT_TIMER_DISPLAY.seconds),
+				mills: readBoolean(displayRaw, 'mills', DEFAULT_TIMER_DISPLAY.mills),
+			},
+			mode: readTimerMode(timerRaw, 'mode'),
+			countdown: readCountdown(timerRaw, 'countdown', DEFAULT_COUNTDOWN),
+		},
+		overlay: {
+			cols: readNumber(overlayRaw, 'cols', DEFAULT_SETTINGS.overlay.cols, 1, 18),
+			rows: readNumber(overlayRaw, 'rows', DEFAULT_SETTINGS.overlay.rows, 1, 6),
+			slotSize: readNumber(overlayRaw, 'slotSize', DEFAULT_SETTINGS.overlay.slotSize, 32, 96),
+			transparentBg: readBoolean(overlayRaw, 'transparentBg', DEFAULT_SETTINGS.overlay.transparentBg),
+			overlayColor: readString(overlayRaw, 'overlayColor', DEFAULT_SETTINGS.overlay.overlayColor),
+			alwaysOnTop: readBoolean(overlayRaw, 'alwaysOnTop', DEFAULT_SETTINGS.overlay.alwaysOnTop),
+			showTimer: readBoolean(overlayRaw, 'showTimer', DEFAULT_SETTINGS.overlay.showTimer),
+			showCurrencies: readBoolean(
+				overlayRaw,
+				'showCurrencies',
+				DEFAULT_SETTINGS.overlay.showCurrencies,
+			),
+			refreshIntervalSec: readNumber(
+				overlayRaw,
+				'refreshIntervalSec',
+				DEFAULT_SETTINGS.overlay.refreshIntervalSec,
+				15,
+				3600,
+			),
+			designEditorEnabled: readBoolean(
+				overlayRaw,
+				'designEditorEnabled',
+				DEFAULT_SETTINGS.overlay.designEditorEnabled,
+			),
+			expandEnabled: readBoolean(overlayRaw, 'expandEnabled', DEFAULT_SETTINGS.overlay.expandEnabled),
+			tutorialEnabled: readBoolean(
+				overlayRaw,
+				'tutorialEnabled',
+				DEFAULT_SETTINGS.overlay.tutorialEnabled,
+			),
+			pipEnabled: readBoolean(overlayRaw, 'pipEnabled', DEFAULT_SETTINGS.overlay.pipEnabled),
+			hotbarOrder: readHotbarOrder(overlayRaw, 'hotbarOrder'),
+			hotbarSlots: readHotbarSlots(overlayRaw, 'hotbarSlots'),
+		},
+		themePreset: presets.includes(themePreset)
+			? (themePreset as AppSettings['themePreset'])
+			: DEFAULT_SETTINGS.themePreset,
+		customDesign: isDesignLayout(designRaw) ? designRaw : null,
+		themeTokens: isThemeTokens(value['themeTokens']) ? value['themeTokens'] : null,
+		savedPresets,
+		activeSavedPresetId: savedPresets.some((preset) => preset.id === activeSavedPresetId)
+			? activeSavedPresetId
+			: null,
+		icons: readStringRecord(value, 'icons'),
+	};
+}
+
+/**
+ * Валидирующая загрузка профилей настроек из localStorage.
+ * Новый формат: { mode, profiles: { rggland, solo } }.
+ * Старый плоский формат мигрируется в rggland-профиль.
+ */
+export function parseEnvelope(raw: string | null): SettingsEnvelope {
+	const fallback = defaultSettingsEnvelope();
+	if (!raw) {
+		return fallback;
+	}
+	try {
+		const parsed: unknown = JSON.parse(raw);
+		if (!isRecord(parsed)) {
+			return fallback;
+		}
+		// Новый формат: профили по режимам.
+		if (isRecord(parsed['profiles'])) {
+			const profilesValue = parsed['profiles'];
+			const rawMode = parsed['mode'];
+			const mode = APP_MODES.includes(rawMode as AppMode)
+				? (rawMode as AppMode)
+				: DEFAULT_APP_MODE;
+			return {
+				mode,
+				profiles: {
+					rggland: parseProfileValue(profilesValue['rggland']),
+					solo: parseProfileValue(profilesValue['solo']),
+				},
+			};
+		}
+		// Старый плоский формат: всё в rggland-профиль, solo — дефолты.
+		return {
+			mode: DEFAULT_APP_MODE,
+			profiles: {
+				rggland: parseProfileValue(parsed),
+				solo: structuredClone(DEFAULT_SETTINGS),
+			},
+		};
+	} catch {
+		return fallback;
 	}
 }
 
@@ -309,6 +536,7 @@ function deepMerge(base: AppSettings, patch: Partial<AppSettings>): AppSettings 
 				columns: { ...base.sources.sheets.columns, ...patch.sources.sheets.columns },
 			},
 			local: { ...base.sources.local, ...patch.sources.local },
+			solo: { ...base.sources.solo, ...patch.sources.solo },
 		};
 	}
 	if (patch.timer) {
@@ -333,7 +561,7 @@ function readStorage(): string | null {
 	}
 }
 
-function writeStorage(value: AppSettings): void {
+function writeStorage(value: SettingsEnvelope): void {
 	try {
 		localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(value));
 	} catch {
@@ -342,44 +570,67 @@ function writeStorage(value: AppSettings): void {
 }
 
 /**
- * Настройки оверлея. Единый источник истины — параметр `settings`.
- * Производные стабильные срезы (activeSource, themePreset, customDesign, icons, overlay)
- * выбираются computed'ами, чтобы компоненты перерисовывались только при их изменении.
+ * Настройки оверлея. Состояние — envelope { mode, profiles }: у каждого режима
+ * (RGG Land / Solo RGG) свой полный набор настроек. `settings` — вычисляемый
+ * активный профиль (профиль текущего режима), поэтому существующие sчиты
+ * остаются без изменений.
  * Персистенс в localStorage: чтение при init, запись при каждом изменении.
  */
 export const SettingsStore = signalStore(
 	{ providedIn: 'root' },
-	withState<{ settings: AppSettings }>({ settings: parseSettings(readStorage()) }),
+	withState<{ envelope: SettingsEnvelope }>({ envelope: parseEnvelope(readStorage()) }),
 	withComputed((store) => ({
-		activeSource: computed(() => store.settings().activeSource),
-		themePreset: computed(() => store.settings().themePreset),
-		customDesign: computed(() => store.settings().customDesign),
-		themeTokens: computed(() => store.settings().themeTokens),
-		savedPresets: computed(() => store.settings().savedPresets),
-		activeSavedPresetId: computed(() => store.settings().activeSavedPresetId),
-		icons: computed(() => store.settings().icons),
-		overlay: computed(() => store.settings().overlay),
+		mode: computed(() => store.envelope().mode),
+		settings: computed(() => store.envelope().profiles[store.envelope().mode]),
+		activeSource: computed(() => store.envelope().profiles[store.envelope().mode].activeSource),
+		themePreset: computed(() => store.envelope().profiles[store.envelope().mode].themePreset),
+		customDesign: computed(() => store.envelope().profiles[store.envelope().mode].customDesign),
+		themeTokens: computed(() => store.envelope().profiles[store.envelope().mode].themeTokens),
+		savedPresets: computed(() => store.envelope().profiles[store.envelope().mode].savedPresets),
+		activeSavedPresetId: computed(() =>
+			store.envelope().profiles[store.envelope().mode].activeSavedPresetId,
+		),
+		icons: computed(() => store.envelope().profiles[store.envelope().mode].icons),
+		overlay: computed(() => store.envelope().profiles[store.envelope().mode].overlay),
 	})),
 	withMethods((store) => ({
+		/** Переключает активный режим; каждый режим несёт свой полный профиль настроек. */
+		setMode(mode: AppMode): void {
+			const next: SettingsEnvelope = { ...store.envelope(), mode };
+			patchState(store, { envelope: next });
+			writeStorage(next);
+		},
 		update(partial: Partial<AppSettings>): void {
-			const next = deepMerge(store.settings(), partial);
-			patchState(store, { settings: next });
+			const mode = store.envelope().mode;
+			const active = store.envelope().profiles[mode];
+			const nextActive = deepMerge(active, partial);
+			const next: SettingsEnvelope = {
+				...store.envelope(),
+				profiles: { ...store.envelope().profiles, [mode]: nextActive },
+			};
+			patchState(store, { envelope: next });
 			writeStorage(next);
 		},
 		updateWith(fn: (current: AppSettings) => AppSettings): void {
-			const next = fn(store.settings());
-			patchState(store, { settings: next });
+			const mode = store.envelope().mode;
+			const active = store.envelope().profiles[mode];
+			const nextActive = fn(active);
+			const next: SettingsEnvelope = {
+				...store.envelope(),
+				profiles: { ...store.envelope().profiles, [mode]: nextActive },
+			};
+			patchState(store, { envelope: next });
 			writeStorage(next);
 		},
 		reset(): void {
-			const defaults = structuredClone(DEFAULT_SETTINGS);
-			patchState(store, { settings: defaults });
+			const defaults = defaultSettingsEnvelope();
+			patchState(store, { envelope: defaults });
 			writeStorage(defaults);
 		},
 	})),
 	withHooks({
 		onInit(store) {
-			patchState(store, { settings: parseSettings(readStorage()) });
+			patchState(store, { envelope: parseEnvelope(readStorage()) });
 		},
 	}),
 );

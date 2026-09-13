@@ -1,0 +1,11 @@
+<div class="hotbar" [style.--inv-cols]="cols()">
+	@for (slot of slots(); track $index) {
+		<app-hotbar-slot
+			class="hotbar-slot"
+			[index]="$index"
+			[view]="slot"
+			[dragOver]="dragOverIndex() === $index"
+			(slotReset)="resetSlot($index)"
+		/>
+	}
+</div>

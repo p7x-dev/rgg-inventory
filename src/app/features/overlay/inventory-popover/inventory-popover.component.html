@@ -1,20 +1,93 @@
 <div class="popover">
-	<header class="popover-header">
-		<tui-icon icon="@tui.backpack" class="popover-header-icon" />
-		<h2 class="popover-header-title">{{ playerName() }} — инвентарь</h2>
-		<span class="popover-count">{{ totalCount() }}</span>
-		<button tuiButton type="button" appearance="flat" iconStart="@tui.x" class="popover-close" aria-label="Закрыть" (click)="onClose()"></button>
-	</header>
+	@if (selectedEntry(); as entry) {
+		<section class="details">
+			<header class="details-header">
+				<button
+					tuiButton
+					type="button"
+					appearance="flat"
+					iconStart="@tui.arrow-left"
+					class="details-back"
+					aria-label="Назад"
+					(click)="closeDetails()"
+				></button>
+				<h2 class="details-title">{{ entry.name }}</h2>
+				<button
+					tuiButton
+					type="button"
+					appearance="flat"
+					iconStart="@tui.x"
+					class="details-close"
+					aria-label="Закрыть"
+					(click)="onClose()"
+				></button>
+			</header>
 
-	<app-inventory-search-bar [(query)]="query" [(sortMode)]="sortMode" [(sortAsc)]="sortAsc" />
+			<div class="details-body">
+				@if (selectedIcon(); as icon) {
+					<img class="details-icon" [src]="icon" alt="" />
+				} @else {
+					<div class="details-icon details-icon-fallback">{{ entry.name.charAt(0).toUpperCase() }}</div>
+				}
 
-	<div class="popover-body">
-		@if (totalCount() === 0) {
-			<p class="empty">Ничего не найдено</p>
-		} @else {
-			@for (group of groups(); track group.id) {
-				<app-inventory-category-group [label]="group.label" [items]="group.items" />
+				<h3 class="details-name">{{ entry.name }}</h3>
+
+				@if (selectedType(); as type) {
+					<span class="details-type">{{ type }}</span>
+				}
+
+				@if ((entry.quantity ?? 1) > 1) {
+					<p class="details-row details-quantity">Количество: ×{{ entry.quantity }}</p>
+				}
+
+				@if (selectedDescription(); as description) {
+					<div class="details-block">
+						<span class="details-label">Описание</span>
+						<p class="details-row">{{ description }}</p>
+					</div>
+				}
+
+				@if (selectedEffect(); as effect) {
+					<div class="details-block">
+						<span class="details-label">Эффект</span>
+						<p class="details-row">{{ effect }}</p>
+					</div>
+				}
+
+				@if (selectedRarity(); as rarity) {
+					<div class="details-block">
+					<span class="details-label">Раритет</span>
+					<p class="details-rarity">
+						<span class="details-rarity-name">{{ rarity.label }}</span>
+						<span class="details-rarity-stars" aria-hidden="true">
+							{{ '★'.repeat(rarity.stars) }}{{ '☆'.repeat(6 - rarity.stars) }}
+						</span>
+					</p>
+					@if (entry.note) {
+						<p class="details-row details-note">{{ entry.note }}</p>
+					}
+					</div>
+				}
+				</div>
+		</section>
+	} @else {
+		<header class="popover-header">
+			<tui-icon icon="@tui.backpack" class="popover-header-icon" />
+			<h2 class="popover-header-title">{{ playerName() }} — инвентарь</h2>
+			<span class="popover-count">{{ totalCount() }}</span>
+			<button tuiButton type="button" appearance="flat" iconStart="@tui.x" class="popover-close" aria-label="Закрыть" (click)="onClose()"></button>
+		</header>
+
+		<app-inventory-search-bar [(query)]="query" [(sortMode)]="sortMode" [(sortAsc)]="sortAsc" />
+
+		<div class="popover-body">
+			@if (totalCount() === 0) {
+				<p class="empty">Ничего не найдено</p>
+			} @else {
+				@for (group of groups(); track group.id) {
+					<app-inventory-category-group [label]="group.label" [items]="group.items" (itemSelect)="onSelectItem($event)" />
+				}
 			}
-		}
-	</div>
+		</div>
+	}
 </div>

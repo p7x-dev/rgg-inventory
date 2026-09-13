@@ -1,6 +1,6 @@
 [package]
 name = "rgg-inventory"
-version = "0.2.0"
+version = "0.3.0"
 description = "RGG Inventory — оверлей-инвентарь для RGG-стримеров"
 authors = [ "rgg" ]
 license = ""

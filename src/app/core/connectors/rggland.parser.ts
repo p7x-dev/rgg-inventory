@@ -4,6 +4,7 @@ import type {
 	InventoryData,
 	InventoryEntry,
 } from '@core/models/inventory.model';
+import { lookupBankItem } from '@core/data/rgg-items.bank';
 import { INVENTORY_CATEGORY, slugify } from '@core/models/inventory.model';
 
 /**
@@ -18,7 +19,6 @@ import { INVENTORY_CATEGORY, slugify } from '@core/models/inventory.model';
  */
 
 const SUBHEADER_RE = /<li[^>]*class="MuiListSubheader-root[^"]*"[^>]*>([^<]+)<\/li>/g;
-const NOTES_RE = /Заметки<\/li>\s*<p[^>]*>([\s\S]*?)<\/p>/;
 const ITEM_RE = /<li class="MuiListItem-root[^"]*"[^>]*>([\s\S]*?)<\/li>/g;
 
 const CATEGORY_HEADERS: Record<string, InventoryCategoryId> = {
@@ -62,6 +62,11 @@ function parseEntry(itemHtml: string): InventoryEntry | null {
 	const note = secondaryMatch ? stripHtml(secondaryMatch[1]) : undefined;
 
 	const entry: InventoryEntry = { id: slugify(name), name };
+	const bankItem = lookupBankItem(name);
+	if (bankItem) {
+		entry.type = bankItem.type;
+		entry.description = bankItem.description;
+	}
 	if (note) {
 		entry.note = note;
 	}
@@ -84,8 +89,6 @@ function splitSections(html: string): Array<{ header: string; fragment: string }
 /** Разбирает HTML страницы инвентаря игрока. */
 export function parseInventoryHtml(html: string, player: string): InventoryData {
 	const withoutScripts = html.replace(/<script[\s\S]*?<\/script>/gi, '');
-	const notesMatch = NOTES_RE.exec(withoutScripts);
-	const notes = notesMatch ? stripHtml(notesMatch[1]).replace(/\n/g, '\n') : '';
 
 	const categories: InventoryCategory[] = [];
 	for (const { header, fragment } of splitSections(withoutScripts)) {
@@ -109,7 +112,6 @@ export function parseInventoryHtml(html: string, player: string): InventoryData 
 		player,
 		coins: 0,
 		tears: 0,
-		notes,
 		categories,
 		fetchedAt: new Date().toISOString(),
 	};
@@ -138,6 +140,3 @@ export function parseOverviewCurrencies(html: string, nick: string): { coins: nu
 	}
 	return { coins: 0, tears: 0 };
 }
-
-/** Базовый URL сайта RGG Land. */
-export const RGG_LAND_BASE = 'https://rgg.land';
