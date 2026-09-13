@@ -180,7 +180,9 @@ function headerIndex(headers: string[], candidates: readonly string[]): number {
  *  - «чистые»: первая строка — заголовки (Платформа,Игра,Статус,...);
  *  - «с шапкой»: вверху строка-заголовок платформ (например «NES * PS1 * SNES ...»),
  *    а заголовки колонок лежат на 1–2 строки ниже (Дата,Платформа,Мод,Игра,Результат,Причина...).
- * Парсер сам находит строку с заголовками по ячейке «Игра».
+ * Парсер не знает форму шапки: он перебирает строки и берёт первую, которая
+ * даёт рабочее сопоставление колонок (по ячейке «Игра»/«Game») и распознаваемые
+ * записи ниже. Так шапка любой формы игнорируется, а парсится сама таблица.
  */
 export function parseSoloCsv(
 	csv: string,
@@ -193,10 +195,30 @@ export function parseSoloCsv(
 	}
 	const fullMapping = { ...DEFAULT_SOLO_MAPPING, ...mapping };
 
-	// Ищем строку заголовков: ту, где есть ячейка «Игра» (и обычно «Платформа»).
-	let headerIdx = rows.findIndex((row) => row.some((cell) => cell.trim().toLowerCase() === 'игра'));
-	if (headerIdx < 0) {
-		headerIdx = rows.findIndex((row) => row.some((cell) => cell.trim().toLowerCase() === 'game'));
+	// Перебираем строки-кандидаты в заголовки: подходит та, где есть ячейка
+	// «Игра»/«Game» и которая даёт хотя бы одну распознаваемую запись ниже.
+	let headerIdx = -1;
+	for (let i = 0; i < rows.length; i++) {
+		if (!rows[i].some((cell) => cell.trim().toLowerCase() === 'игра' || cell.trim().toLowerCase() === 'game')) {
+			continue;
+		}
+		const headers = rows[i];
+		const gameIdx = headerIndex(headers, [fullMapping.game, 'игра', 'game', 'title']);
+		const actionIdx = headerIndex(
+			headers,
+			[fullMapping.action, 'статус', 'действие', 'результат', 'result', 'action'],
+		);
+		if (gameIdx < 0 || actionIdx < 0) {
+			continue;
+		}
+		const hasData = rows.slice(i + 1).some((row) => {
+			const game = (row[gameIdx] ?? '').trim();
+			return game !== '' && parseSoloAction(row[actionIdx] ?? '') !== null;
+		});
+		if (hasData) {
+			headerIdx = i;
+			break;
+		}
 	}
 	if (headerIdx < 0) {
 		const found = rows[0].map((header) => `«${header}»`).join(', ');

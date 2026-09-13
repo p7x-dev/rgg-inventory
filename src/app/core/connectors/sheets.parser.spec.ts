@@ -174,4 +174,22 @@ describe('parseSoloCsv', () => {
 		// Строка-дата без игры и строки без статуса игнорируются.
 		expect(rows.some((row) => row.game === '')).toBe(false);
 	});
+
+	it('игнорирует произвольную шапку из нескольких мусорных строк', () => {
+		const csv = [
+			'SEASON 12, Solo RGG, 2026',
+			'стример: XaKoH; таблица: игры по платформам',
+			'',
+			'Платформа,Игра,Статус,Причина',
+			'NES,Марио,Пройдено,Классика',
+			'PS1,Крэш,Реролл,Глючит',
+		].join('\n');
+
+		const data = parseSoloCsv(csv);
+
+		expect(data.categories.map((category) => category.platform)).toEqual(['NES', 'PS1']);
+		expect(data.total).toEqual({ completed: 1, reroll: 1, skip: 0 });
+		expect(data.categories[0].rows[0].game).toBe('Марио');
+		expect(data.categories[1].rows[0].reason).toBe('Глючит');
+	});
 });
