@@ -126,7 +126,7 @@ export class SourceSettingsComponent {
 		}));
 	}
 
-	protected updateSolo(config: Partial<{ spreadsheetId: string; gid: string }>): void {
+	protected updateSolo(config: Partial<{ spreadsheetId: string; gid: string; rawgApiKey: string }>): void {
 		this.settingsStore.updateWith((current) => ({
 			...current,
 			sources: {

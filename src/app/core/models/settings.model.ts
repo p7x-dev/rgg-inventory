@@ -33,6 +33,8 @@ export interface LocalSourceConfig {
 export interface SoloSourceConfig {
 	spreadsheetId: string;
 	gid: string;
+	/** Ключ RAWG API для обложек/скриншотов в детальной странице игры. */
+	rawgApiKey: string;
 }
 
 export interface SourceConfigs {
@@ -215,6 +217,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
 		solo: {
 			spreadsheetId: '',
 			gid: '',
+			rawgApiKey: '',
 		},
 	},
 	timer: {

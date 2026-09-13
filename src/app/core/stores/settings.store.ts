@@ -261,6 +261,7 @@ export function parseSettings(raw: string | null): AppSettings {
 				solo: {
 					spreadsheetId: readString(soloRaw, 'spreadsheetId', DEFAULT_SETTINGS.sources.solo.spreadsheetId),
 					gid: readString(soloRaw, 'gid', DEFAULT_SETTINGS.sources.solo.gid),
+					rawgApiKey: readString(soloRaw, 'rawgApiKey', DEFAULT_SETTINGS.sources.solo.rawgApiKey),
 				},
 			},
 			timer: {
@@ -390,6 +391,7 @@ function parseProfileValue(value: unknown): AppSettings {
 			solo: {
 				spreadsheetId: readString(soloRaw, 'spreadsheetId', DEFAULT_SETTINGS.sources.solo.spreadsheetId),
 				gid: readString(soloRaw, 'gid', DEFAULT_SETTINGS.sources.solo.gid),
+				rawgApiKey: readString(soloRaw, 'rawgApiKey', DEFAULT_SETTINGS.sources.solo.rawgApiKey),
 			},
 		},
 		timer: {

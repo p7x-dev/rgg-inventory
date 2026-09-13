@@ -27,6 +27,16 @@
 				placeholder="0"
 			/>
 		</tui-textfield>
+		<tui-textfield class="field">
+			<label>RAWG API-ключ (обложки и скриншоты игр)</label>
+			<input
+				tuiInput
+				#soloRawgKey
+				[value]="sources().sources.solo.rawgApiKey"
+				(input)="updateSolo({ rawgApiKey: soloRawgKey.value })"
+				placeholder="получите на rawg.io/apidocs"
+			/>
+		</tui-textfield>
 		<p class="hint">Таблица должна быть доступна «по ссылке».</p>
 	} @else {
 		<button
