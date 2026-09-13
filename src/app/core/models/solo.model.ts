@@ -9,16 +9,22 @@
 /** Платформы Solo RGG (как в правилах rgg.land /solo). */
 export const SOLO_PLATFORMS: readonly string[] = [
 	'NES',
+	'PS1',
+	'SNES',
+	'STEAM',
+	'SMD',
+	'SMD+2',
+	'N64',
+	'3DO',
+	'PS2',
+	'ZXspec',
+	'ZX Spectrum',
+	'DOS',
 	'Game Boy',
 	'Master System',
 	'Game Gear',
-	'SMD',
-	'SNES',
 	'TG16',
 	'GBA',
-	'DOS',
-	'ZX Spectrum',
-	'PS1',
 ] as const;
 
 export type SoloPlatform = (typeof SOLO_PLATFORMS)[number] | 'Другое';
@@ -90,6 +96,7 @@ export function parseSoloAction(value: string): SoloAction | null {
 	}
 	if (
 		normalized === 'реролл' ||
+		normalized === 'рерол' ||
 		normalized === 'реролльнуто' ||
 		normalized === 'reroll' ||
 		normalized === 're-roll' ||
@@ -103,6 +110,7 @@ export function parseSoloAction(value: string): SoloAction | null {
 		normalized === 'пропущено' ||
 		normalized === 'пропущен' ||
 		normalized === 'skip' ||
+		normalized === 'дроп' ||
 		normalized === '⏭' ||
 		normalized === '✖'
 	) {

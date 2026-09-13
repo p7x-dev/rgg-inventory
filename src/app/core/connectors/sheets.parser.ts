@@ -175,6 +175,12 @@ function headerIndex(headers: string[], candidates: readonly string[]): number {
  * Разбирает CSV-экспорт Solo-таблицы стримера в SoloData:
  * тасует строки по платформам (заголовкам), считает пройдено/реролльнуто/пропущено,
  * помечает текущую игру каждой платформы.
+ *
+ * Таблицы бывают двух видов:
+ *  - «чистые»: первая строка — заголовки (Платформа,Игра,Статус,...);
+ *  - «с шапкой»: вверху строка-заголовок платформ (например «NES * PS1 * SNES ...»),
+ *    а заголовки колонок лежат на 1–2 строки ниже (Дата,Платформа,Мод,Игра,Результат,Причина...).
+ * Парсер сам находит строку с заголовками по ячейке «Игра».
  */
 export function parseSoloCsv(
 	csv: string,
@@ -185,13 +191,23 @@ export function parseSoloCsv(
 	if (rows.length < 2) {
 		throw new Error('Таблица пустая: нужна строка заголовков и хотя бы одна запись');
 	}
-	const headers = rows[0];
 	const fullMapping = { ...DEFAULT_SOLO_MAPPING, ...mapping };
+
+	// Ищем строку заголовков: ту, где есть ячейка «Игра» (и обычно «Платформа»).
+	let headerIdx = rows.findIndex((row) => row.some((cell) => cell.trim().toLowerCase() === 'игра'));
+	if (headerIdx < 0) {
+		headerIdx = rows.findIndex((row) => row.some((cell) => cell.trim().toLowerCase() === 'game'));
+	}
+	if (headerIdx < 0) {
+		const found = rows[0].map((header) => `«${header}»`).join(', ');
+		throw new Error(`Не найдены колонки «${fullMapping.game}» и/или «${fullMapping.action}». Найдены: ${found}`);
+	}
+	const headers = rows[headerIdx];
 
 	const platformIdx = headerIndex(headers, [fullMapping.platform, 'платформа', 'console', 'system']);
 	const gameIdx = headerIndex(headers, [fullMapping.game, 'игра', 'game', 'title']);
-	const actionIdx = headerIndex(headers, [fullMapping.action, 'статус', 'действие', 'result', 'action']);
-	const reasonIdx = headerIndex(headers, [fullMapping.reason, 'причина', 'reason']);
+	const actionIdx = headerIndex(headers, [fullMapping.action, 'статус', 'действие', 'результат', 'result', 'action']);
+	const reasonIdx = headerIndex(headers, [fullMapping.reason, 'причина', 'примечание', 'notes', 'reason']);
 	const descriptionIdx = headerIndex(headers, [fullMapping.description, 'описание', 'notes', 'description']);
 	const currentIdx = headerIndex(headers, [fullMapping.current, 'текущая', 'current', 'сейчас']);
 
@@ -201,7 +217,7 @@ export function parseSoloCsv(
 	}
 
 	const rawRows: SoloRow[] = [];
-	for (const row of rows.slice(1)) {
+	for (const row of rows.slice(headerIdx + 1)) {
 		const game = (row[gameIdx] ?? '').trim();
 		if (!game) {
 			continue;

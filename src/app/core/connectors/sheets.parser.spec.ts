@@ -149,4 +149,29 @@ describe('parseSoloCsv', () => {
 		expect(data.total.completed).toBe(1);
 		expect(data.categories.flatMap((category) => category.rows)).toHaveLength(1);
 	});
+
+	it('находит заголовки под «шапкой» платформ (реальная таблица стримера)', () => {
+		const withHeader = [
+			',NES * PS1 * SNES * STEAM * SMD+2 * N64 * 3DO * PS2 * ZXspec * DOS,',
+			',Дата,Платформа,Мод,Игра,Результат,Примечание,,Инвентарь,,Цена,Событие,Описание,Результат',
+			',31.08.2026,,,,,Хорошая игра.,,Рерол,,300,Спецролл,Крутите Спецролл,',
+			',,NES,,Stant Kids,Реролл,"прикольная, но она не проходима",,,,,600,Генезиздас,Доп две игра для сеги,',
+			',,NES,,World Class Track Meet,Реролл,Спорт,,,,900,Дроп-позор,,',
+			',,NES,,Jiqiren Dazhan,Реролл,Японский,,,,,,,',
+			',,NES,,Bao Qingtian (NES),Пройдено,Китайский Волгар Викинг оценка 7/10,,Дроп,,,,,',
+		].join('\n');
+
+		const data = parseSoloCsv(withHeader);
+
+		expect(data.categories.map((category) => category.platform)).toEqual(['NES']);
+		expect(data.total).toEqual({ completed: 1, reroll: 3, skip: 0 });
+		const rows = data.categories[0].rows;
+		expect(rows).toHaveLength(4);
+		expect(rows[0].game).toBe('Stant Kids');
+		expect(rows[0].action).toBe('reroll');
+		expect(rows[0].reason).toBe('прикольная, но она не проходима');
+		expect(rows.find((row) => row.game === 'Bao Qingtian (NES)')?.action).toBe('completed');
+		// Строка-дата без игры и строки без статуса игнорируются.
+		expect(rows.some((row) => row.game === '')).toBe(false);
+	});
 });
