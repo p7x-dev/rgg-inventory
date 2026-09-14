@@ -16,7 +16,7 @@
 		"alpha-value-notation": null,
 		"selector-pseudo-element-colon-notation": "single",
 		"selector-class-pattern": [
-			"^(([a-z][a-z0-9]*)|(_focused)|(_invalid)|(_hovered)|(_ios)|(_dragged)|(_stuck)|(_visible)|(_rounded)|(_overlay)|(t-wrapper_overlay)|(t-wrapper_closeable)|(_disabled)|(t-content_disabled)|(_has-icon)|(_loading)|(([a-z][a-z0-9]*)+(_disabled)))((-[a-z0-9]+))*$",
+			"^((_?[a-z][a-z0-9-]*)(__[a-z0-9-]+)*(_[a-z][a-z0-9-]*)?|t-[a-z0-9_-]+|_[a-z-]+)$",
 			{
 				"message": "Expected class selector to be kebab-case"
 			}

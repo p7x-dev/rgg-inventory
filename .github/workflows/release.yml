@@ -152,4 +152,4 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
           ssh -i ~/.ssh/id_ed25519 "$DEPLOY_USER@$DEPLOY_HOST" \
-            "chown -R www-data:www-data /var/www/rgg-inv-downloads && chmod -R 644 /var/www/rgg-inv-downloads && chmod 755 /var/www/rgg-inv-downloads"
+            "chown -R www-data:www-data /var/www/rgg-inv-downloads && chmod -R a+rX /var/www/rgg-inv-downloads"
