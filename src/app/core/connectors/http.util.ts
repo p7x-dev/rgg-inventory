@@ -2,8 +2,11 @@
  * Базовая логика HTTP. В dev-режиме (http://localhost / 127.0.0.1) внешние
  * https-хосты недоступны из-за CORS, поэтому запросы идут через dev-прокси
  * Angular (proxy.conf.json) на относительный префикс /rgg-api и /rgg-bot.
- * В проде (Tauri с протоколом tauri://, либо развёрнутый https) — напрямую.
+ * На развёрнутом сайте — через nginx-прокси того же сервера (/rgg-land,
+ * /rgg-bot). В Tauri (протокол tauri://) fetch подменён на нативный HTTP-
+ * клиент плагина (src/main.ts) — ходим напрямую по https.
  */
+import { isTauri } from '@core/utils/platform';
 
 function isLocalDevOrigin(): boolean {
 	if (typeof window === 'undefined') {
@@ -16,19 +19,45 @@ function isLocalDevOrigin(): boolean {
 	return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
 }
 
-/** Базовый URL rgg.land с учётом dev-прокси. */
-export function rggLandOrigin(): string {
-	return isLocalDevOrigin() ? '/rgg-api' : 'https://rgg.land';
+/** `true` для развёрнутого веб-приложения (https, не Tauri): CORS обходим nginx-прокси. */
+function isWebDeploy(): boolean {
+	if (typeof window === 'undefined') {
+		return false;
+	}
+	return window.location.protocol === 'https:' && !isLocalDevOrigin() && !isTauri();
 }
 
-/** Базовый URL bot.rgg.land с учётом dev-прокси. */
+/** Базовый URL rgg.land: dev-прокси / prod-прокси сервера / напрямую (Tauri). */
+export function rggLandOrigin(): string {
+	if (isLocalDevOrigin()) {
+		return '/rgg-api';
+	}
+	if (isWebDeploy()) {
+		return '/rgg-land';
+	}
+	return 'https://rgg.land';
+}
+
+/** Базовый URL bot.rgg.land: dev-прокси / prod-прокси сервера / напрямую (Tauri). */
 export function rggBotOrigin(): string {
-	return isLocalDevOrigin() ? '/rgg-bot' : 'https://bot.rgg.land';
+	if (isLocalDevOrigin()) {
+		return '/rgg-bot';
+	}
+	if (isWebDeploy()) {
+		return '/rgg-bot';
+	}
+	return 'https://bot.rgg.land';
 }
 
 /** URL WebSocket бота RGG с учётом dev-прокси (ws проксируется dev-сервером). */
 export function rggBotWsUrl(): string {
-	return isLocalDevOrigin() ? 'ws://localhost:4200/rgg-bot/ws' : 'wss://bot.rgg.land/ws';
+	if (isLocalDevOrigin()) {
+		return 'ws://localhost:4200/rgg-bot/ws';
+	}
+	if (isWebDeploy()) {
+		return `wss://${window.location.host}/rgg-bot/ws`;
+	}
+	return 'wss://bot.rgg.land/ws';
 }
 
 /** Тонкая обёртка над fetch с понятной ошибкой. */

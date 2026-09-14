@@ -19,7 +19,6 @@ const platformIconFile: Record<string, string> = {
 	'Famicom Disk System': 'fds',
 	// Sega
 	'SMD': 'md',
-	'SMD+2': 'md',
 	'Sega CD': 'segacd',
 	'32X': '32X',
 	'Master System': 'ms',
@@ -47,7 +46,6 @@ const platformIconFile: Record<string, string> = {
 	'Atari ST': 'atarist',
 	// Компьютеры
 	'ZX Spectrum': 'zxs',
-	'ZXspec': 'zxs',
 	'DOS': 'dos',
 	'Commodore 64': 'c64',
 	'Amiga': 'amiga',

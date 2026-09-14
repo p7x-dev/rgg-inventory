@@ -20,7 +20,6 @@ export const SOLO_PLATFORMS: readonly string[] = [
 	'Famicom Disk System',
 	// Sega
 	'SMD',
-	'SMD+2',
 	'Sega CD',
 	'32X',
 	'Master System',
@@ -49,7 +48,6 @@ export const SOLO_PLATFORMS: readonly string[] = [
 	'Atari ST',
 	// Компьютеры
 	'ZX Spectrum',
-	'ZXspec',
 	'DOS',
 	'Commodore 64',
 	'Amiga',
@@ -191,10 +189,10 @@ const SOLO_PLATFORM_ALIASES: Readonly<Record<string, SoloPlatform>> = {
 	'genesis': 'SMD',
 	'megadrive': 'SMD',
 	'md': 'SMD',
-	'sega mega drive 2': 'SMD+2',
-	'mega drive 2': 'SMD+2',
-	'genesis 2': 'SMD+2',
-	'md2': 'SMD+2',
+	'sega mega drive 2': 'SMD',
+	'mega drive 2': 'SMD',
+	'genesis 2': 'SMD',
+	'md2': 'SMD',
 	'sega cd': 'Sega CD',
 	'mega cd': 'Sega CD',
 	'sega mega cd': 'Sega CD',
@@ -242,9 +240,9 @@ const SOLO_PLATFORM_ALIASES: Readonly<Record<string, SoloPlatform>> = {
 	'zx-spectrum': 'ZX Spectrum',
 	'zx spectrum': 'ZX Spectrum',
 	'zxspectrum': 'ZX Spectrum',
-	'zx': 'ZXspec',
-	'спеktrum': 'ZXspec',
-	'спектрум': 'ZXspec',
+	'zx': 'ZX Spectrum',
+	'спеktrum': 'ZX Spectrum',
+	'спектрум': 'ZX Spectrum',
 	'commodore 64': 'Commodore 64',
 	'c64': 'Commodore 64',
 	'commodore c64': 'Commodore 64',
@@ -302,8 +300,6 @@ export function soloPlatformShortName(platform: string): string {
 		case 'Game Gear':
 			return 'GG';
 		case 'ZX Spectrum':
-			return 'ZX';
-		case 'ZXspec':
 			return 'ZX';
 		case 'Famicom Disk System':
 			return 'FDS';

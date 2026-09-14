@@ -645,9 +645,14 @@ function readStorage(): string | null {
 	}
 }
 
+/** Последнее прочитанное/записанное сырьё — чтобы не обновлять состояние без реальных изменений. */
+let lastRawSettings: string | null = null;
+
 function writeStorage(value: SettingsEnvelope): void {
 	try {
-		localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(value));
+		const raw = JSON.stringify(value);
+		localStorage.setItem(SETTINGS_STORAGE_KEY, raw);
+		lastRawSettings = raw;
 	} catch {
 		// переполнение localStorage (большие dataURL дизайна) — настройки остаются в памяти
 	}
@@ -714,7 +719,31 @@ export const SettingsStore = signalStore(
 	})),
 	withHooks({
 		onInit(store) {
-			patchState(store, { envelope: parseEnvelope(readStorage()) });
+			lastRawSettings = readStorage();
+			patchState(store, { envelope: parseEnvelope(lastRawSettings) });
+
+			if (typeof window === 'undefined') {
+				return;
+			}
+
+			// Живая синхронизация настроек между вкладками: виджет/оверлей в другой
+			// вкладке (или окне) подхватывает изменения с сайта без перезагрузки.
+			const syncFromStorage = (): void => {
+				const raw = readStorage();
+				if (raw === lastRawSettings) {
+					return;
+				}
+				lastRawSettings = raw;
+				patchState(store, { envelope: parseEnvelope(raw) });
+			};
+
+			window.addEventListener('storage', (event) => {
+				if (event.key === SETTINGS_STORAGE_KEY) {
+					syncFromStorage();
+				}
+			});
+			// Фолбэк: некоторые webview не доставляют событие storage.
+			setInterval(syncFromStorage, 3000);
 		},
 	}),
 );
