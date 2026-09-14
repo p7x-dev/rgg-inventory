@@ -4,7 +4,7 @@
  * Читает RAWG_API_KEY (и другие ключи API) и встраивает в бандл.
  * .env и сгенерированный environment.ts в .gitignore — ключи не попадут в репозиторий.
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -39,5 +39,7 @@ export const environment: { rawgApiKey: string } = {
 };
 `;
 
+// Каталог gitignored — на свежем CI-раннере его может не быть.
+mkdirSync(join(root, 'src/environments'), { recursive: true });
 writeFileSync(join(root, 'src/environments/environment.ts'), content);
 console.warn(`environment.ts synced (rawgApiKey: ${rawgApiKey ? 'set' : 'empty'})`);

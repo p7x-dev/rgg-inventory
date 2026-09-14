@@ -57,8 +57,10 @@ export class DownloadNoticeComponent {
 		if (readSeenVersion() === APP_VERSION) {
 			return false;
 		}
-		// Показываем только когда известно, что сборки есть (манифест или GitHub).
-		return this.releaseStore.hasArtifact();
+		// Показываем только когда вышла НОВАЯ версия и под текущую ОС есть готовый
+		// артефакт (манифест сервера или GitHub): пока сборка не закончилась и файлы
+		// не залиты — уведомления нет.
+		return this.releaseStore.hasUpdate() && this.releaseStore.hasArtifact();
 	});
 
 	protected readonly version = computed(() => this.releaseStore.availableVersion() ?? APP_VERSION);

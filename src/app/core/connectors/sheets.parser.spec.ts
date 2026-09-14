@@ -64,7 +64,7 @@ describe('parseSheetCsv', () => {
 	it('кидает ошибку при неизвестной колонке', () => {
 		expect(() =>
 			parseSheetCsv(
-				CSV,
+				'Кто,Что,Где\nИгрок,Дейлик,Дом\n',
 				{
 					name: 'Нет такой колонки',
 					category: 'Категория',
@@ -74,6 +74,32 @@ describe('parseSheetCsv', () => {
 				'таблица',
 			),
 		).toThrow('Не найдена колонка');
+	});
+
+	it('находит колонки по названию, а не по позиции (заголовки не в первой строке)', () => {
+		const csv = [
+			'Банк предметов, сезон 12',
+			'Заполнено: 31.08.2026',
+			'Название предмета,Тип предмета,Заметки,Подробности',
+			'Паук,Обычный,Выкопан в садике,Длинное описание',
+			'Дейликовое проклятие,Эффект,,Минус очко за дейлик',
+		].join('\n');
+
+		const data = parseSheetCsv(
+			csv,
+			{
+				name: 'Предмет',
+				category: 'Категория',
+				note: 'Заметка',
+				description: 'Описание',
+			},
+			'таблица',
+		);
+
+		expect(data.categories.map((category) => category.id)).toEqual(['effects', 'items']);
+		expect(data.categories[1].entries[0].name).toBe('Паук');
+		expect(data.categories[1].entries[0].note).toBe('Выкопан в садике');
+		expect(data.categories[0].entries[0].description).toBe('Минус очко за дейлик');
 	});
 
 	it('кидает ошибку на пустой таблице', () => {
@@ -191,5 +217,58 @@ describe('parseSoloCsv', () => {
 		expect(data.total).toEqual({ completed: 1, reroll: 1, skip: 0 });
 		expect(data.categories[0].rows[0].game).toBe('Марио');
 		expect(data.categories[1].rows[0].reason).toBe('Глючит');
+	});
+
+	it('находит колонки по названию: «Название игры», «Платформы», «Результат», «Сейчас играет»', () => {
+		const csv = [
+			'',
+			'Платформы,Название игры,Результат,Комментарий,Сейчас играет',
+			'NES,Супер Марио 3,Пройдено,Классика,',
+			'NES,Zelda 2,Реролл,Слишком сложно,да',
+			'SMD,Соник 2,Дроп,Не зашло,',
+		].join('\n');
+
+		const data = parseSoloCsv(csv);
+
+		expect(data.categories.map((category) => category.platform)).toEqual(['NES', 'SMD']);
+		expect(data.total).toEqual({ completed: 1, reroll: 1, skip: 1 });
+		expect(data.categories[0].rows[0].game).toBe('Супер Марио 3');
+		expect(data.categories[0].rows[0].reason).toBe('Классика');
+		expect(data.categories[0].current?.game).toBe('Zelda 2');
+	});
+
+	it('находит заголовки глубоко в таблице после мусора и частичных строк', () => {
+		const csv = [
+			'RGG SOLO — ИВЕНТ 2026',
+			'правила: https://example.com/rules',
+			'',
+			'Дата,Платформа,Мод,Игра,Результат,Примечание,Описание',
+			'01.09.2026,,,Stant Kids,Реролл,прикольная,но не проходима',
+			'02.09.2026,,,Bao Qingtian (NES),Пройдено,Китайский Волгар Викинг,оценка 7/10',
+		].join('\n');
+
+		const data = parseSoloCsv(csv);
+
+		expect(data.categories.map((category) => category.platform)).toEqual(['Другое']);
+		expect(data.total).toEqual({ completed: 1, reroll: 1, skip: 0 });
+		expect(data.categories[0].rows[0].game).toBe('Stant Kids');
+		expect(data.categories[0].rows[0].reason).toBe('прикольная');
+		expect(data.categories[0].rows[1].description).toBe('оценка 7/10');
+	});
+
+	it('не путает колонку «Мод» с игрой и «Событие» со статусом', () => {
+		const csv = [
+			'Дата,Платформа,Мод,Игра,Результат,Событие',
+			'01.09.2026,NES,Рулетка,Марио 3,Пройдено,Спецролл',
+			'02.09.2026,PS1,Спецролл,Крэш,Реролл,Генезиздас',
+		].join('\n');
+
+		const data = parseSoloCsv(csv);
+
+		expect(data.categories.map((category) => category.platform)).toEqual(['NES', 'PS1']);
+		expect(data.total).toEqual({ completed: 1, reroll: 1, skip: 0 });
+		expect(data.categories[0].rows[0].game).toBe('Марио 3');
+		expect(data.categories[0].rows[0].action).toBe('completed');
+		expect(data.categories[1].rows[0].game).toBe('Крэш');
 	});
 });
