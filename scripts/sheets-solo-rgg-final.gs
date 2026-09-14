@@ -11,7 +11,8 @@
  *  • Дата (A) — формула TODAY (проставляется сама)
  *  • Платформа (B) — выпадающий список всех платформ (+PC, +STEAM)
  *  • Мод (C) — выпадающий (Рулетка / Спецролл / ...)
- *  • Игра (D) — каскад: только игры выбранной платформы (RAWG + база-фоллбек)
+ *  • Игра (D) — каскад по платформе (база + игры ивента); можно ввести свою
+ *    игру вручную. Платформу можно НЕ указывать — тогда в списке все игры.
  *  • Результат (E) — Пройдено / Реролл / Дроп
  *  • Инвентарь (G) — выпадающий (Реролл / Спецролл / Дроп / Пройдено / Сейчас)
  *  • Цена (H) — число (свободный ввод)
@@ -22,10 +23,129 @@
  *
  * Запуск: Расширения → Apps Script → вставить всё →
  *         выбрать buildSoloRggTable → ▶ Запустить.
- * После запуска один раз: Триггеры → Добавить → onEdit, «При изменении».
+ * Каскад «Игра» работает БЕЗ установки триггеров: простые onEdit/onOpen
+ * копируются вместе с таблицей и срабатывают автоматически в любой копии.
+ * buildSoloRggTable дополнительно ставит installable-триггер onEdit —
+ * это запасной вариант (выполняется от имени владельца).
+ * Игры тянутся из двух источников:
+ *   • https://games.rgg.land/itch/ — игры ивента (названия со страниц itch.io);
+ *   • https://rgg.land/lists/cat.txt — полный список игр по платформам
+ *     (до CAT_GAMES_LIMIT на платформу).
+ * Запуск докачки: downloadRggGames → ▶ (можно повторять сколько нужно).
+ * Если UI недоступен (запуск без таблицы/триггер) — итог пишется в журнал:
+ *         Просмотр → Журналы (Логи).
  */
+
+/** Платформа, под которую складываются игры ивента со списка games.rgg.land/itch/. */
+const RGG_GAMES_PLATFORM = 'PC'; // ← можно поменять, напр. «Аркада»
+
+/** Полный список игр RGG (101 тыс. строк вида «Игра (Платформа)»). */
+const CAT_LIST_URL = 'https://rgg.land/lists/cat.txt';
+
+/** Сколько игр максимум брать на платформу из cat.txt (0 — без лимита). */
+const CAT_GAMES_LIMIT = 5000;
+
+/** RAWG: ключ и сколько страниц (по 100 топ-игр) тянуть на платформу. */
+const RAWG_KEY = '159a78471a7141bbafe4c1592b12162a'; // ← твой ключ RAWG
+const RAWG_PAGES = 3; // 3 × 100 = до 300 игр на платформу
+
+/**
+ * Дополнительный источник: категории Википедии «Игры платформы» (бесплатно,
+ * без ключа). Платформа → название категории en.wikipedia.
+ */
+const WIKI_CATEGORIES = [
+  ['NES', 'Nintendo_Entertainment_System_games'],
+  ['SNES', 'Super_Nintendo_Entertainment_System_games'],
+  ['SMD', 'Sega_Genesis_games'],
+  ['Game Boy', 'Game_Boy_games'],
+  ['Game Boy Color', 'Game_Boy_Color_games'],
+  ['GBA', 'Game_Boy_Advance_games'],
+  ['N64', 'Nintendo_64_games'],
+  ['GameCube', 'Nintendo_GameCube_games'],
+  ['Virtual Boy', 'Virtual_Boy_games'],
+  ['Famicom Disk System', 'Famicom_Disk_System_games'],
+  ['Sega CD', 'Sega_CD_games'],
+  ['32X', 'Sega_32X_games'],
+  ['Master System', 'Master_System_games'],
+  ['Game Gear', 'Game_Gear_games'],
+  ['Saturn', 'Sega_Saturn_games'],
+  ['Dreamcast', 'Dreamcast_games'],
+  ['PS1', 'PlayStation_(console)_games'],
+  ['PS2', 'PlayStation_2_games'],
+  ['PSP', 'PlayStation_Portable_games'],
+  ['TG16', 'TurboGrafx-16_games'],
+  ['Neo Geo', 'Neo_Geo_games'],
+  ['Atari 2600', 'Atari_2600_games'],
+  ['Atari 5200', 'Atari_5200_games'],
+  ['Atari 7800', 'Atari_7800_games'],
+  ['Atari Lynx', 'Atari_Lynx_games'],
+  ['Atari Jaguar', 'Atari_Jaguar_games'],
+  ['Atari ST', 'Atari_ST_games'],
+  ['ZX Spectrum', 'ZX_Spectrum_games'],
+  ['DOS', 'DOS_games'],
+  ['Commodore 64', 'Commodore_64_games'],
+  ['Amiga', 'Amiga_games'],
+  ['MSX', 'MSX_games'],
+  ['Amstrad CPC', 'Amstrad_CPC_games'],
+  ['Apple II', 'Apple_II_games'],
+  ['X68000', 'Sharp_X68000_games'],
+  ['FM Towns', 'FM_Towns_games'],
+  ['3DO', '3DO_games'],
+  ['CD-i', 'Philips_CD-i_games'],
+  ['WonderSwan', 'WonderSwan_games'],
+  ['ColecoVision', 'ColecoVision_games'],
+  ['Intellivision', 'Intellivision_games'],
+  ['Vectrex', 'Vectrex_games'],
+  ['Аркада', 'Arcade_video_games'],
+];
+
+/**
+ * Соответствие платформ cat.txt нашим платформам (из platformList).
+ * Платформы, которых тут нет (DS, PS3, Wii и т.п.), пропускаются.
+ */
+const CAT_PLATFORM_ALIASES = {
+  'NES': 'NES',
+  'SNES': 'SNES',
+  'SMD': 'SMD',
+  'Sega CD': 'Sega CD',
+  'Sega 32X': '32X',
+  'Master System': 'Master System',
+  'GG': 'Game Gear',
+  'Saturn': 'Saturn',
+  'DC': 'Dreamcast',
+  'SG-1000': 'SG-1000',
+  'GB': 'Game Boy',
+  'GBC': 'Game Boy Color',
+  'GBA': 'GBA',
+  'N64': 'N64',
+  'GC': 'GameCube',
+  'VB': 'Virtual Boy',
+  'FDS': 'Famicom Disk System',
+  'PS1': 'PS1',
+  'PS2': 'PS2',
+  'PSP': 'PSP',
+  'Steam': 'STEAM',
+  'Windows': 'PC',
+  'DOS': 'DOS',
+  'C64': 'Commodore 64',
+  'Amiga': 'Amiga',
+  'MSX': 'MSX',
+  'ZX': 'ZX Spectrum',
+  'Amstrad CPC': 'Amstrad CPC',
+  'Sharp X68000': 'X68000',
+  'TG16': 'TG16',
+  'TG16-CD': 'TG16',
+  '3DO': '3DO',
+  'WS': 'WonderSwan',
+  'NGP': 'Neo Geo Pocket',
+  'Atari 2600': 'Atari 2600',
+  'Atari 5200': 'Atari 5200',
+  'Atari 7800': 'Atari 7800',
+  'Atari Lynx': 'Atari Lynx',
+  'Atari Jaguar': 'Atari Jaguar',
+};
+
 function buildSoloRggTable() {
-  const RAWG_KEY = '159a78471a7141bbafe4c1592b12162a'; // ← твой ключ RAWG
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   // ============ 1. СПРАВОЧНИК «Платформы» ============
@@ -37,6 +157,8 @@ function buildSoloRggTable() {
   platformsRef.hideSheet();
 
   // ============ 2. СПРАВОЧНИК «Игры» ============
+  // База популярных игр записывается СРАЗУ (до RAWG): даже если докачка
+  // не успеет за лимит времени или RAWG недоступен — каскад уже работает.
   const pairs = new Map();
   const merge = (platform, game) => {
     const pl = String(platform).trim();
@@ -47,69 +169,8 @@ function buildSoloRggTable() {
   };
   for (const [pl, games] of gameCatalog()) for (const g of games) merge(pl, g);
   const gamesRef = ss.getSheetByName('Игры') || ss.insertSheet('Игры');
-  if (gamesRef.getLastRow() > 0) {
-    const oldRows = gamesRef.getRange(1, 1, gamesRef.getLastRow(), 2).getValues();
-    for (const row of oldRows) merge(row[0], row[1]);
-  }
-  const props = PropertiesService.getScriptProperties();
-  let added = 0;
-  let rawgStatus = [];
-  if (RAWG_KEY) {
-    const rawgIds = rawgPlatformMap();
-    // Мелкие батчи (по 4) + повторы при 429: RAWG лимитирует ~20 запросов/мин.
-    const BATCH = 4;
-    const sleep = (ms) => Utilities.sleep(ms);
-    for (let i = 0; i < rawgIds.length; i += BATCH) {
-      const chunk = rawgIds.slice(i, i + BATCH);
-      const attempts = 3; // до 3 попыток на батч при rate-limit
-      for (let attempt = 0; attempt < attempts; attempt++) {
-        const requests = chunk.map(([, rawgId]) => {
-          const page = Number(props.getProperty('page_' + rawgId) || '1');
-          return {
-            url: 'https://api.rawg.io/api/games?key=' + RAWG_KEY +
-              '&platforms=' + rawgId + '&page_size=100&page=' + page + '&ordering=-rating',
-            muteHttpExceptions: true,
-          };
-        });
-        const responses = UrlFetchApp.fetchAll(requests);
-        const retry = [];
-        chunk.forEach(([platform, rawgId], idx) => {
-          const res = responses[idx];
-          const code = res ? res.getResponseCode() : 0;
-          if (code === 429) {
-            retry.push([platform, rawgId]); // rate-limit — пробуем ещё раз
-            return;
-          }
-          if (code !== 200) {
-            rawgStatus.push(platform + ':HTTP' + code);
-            return;
-          }
-          try {
-            const json = JSON.parse(res.getContentText());
-            const games = (json.results || []).map((g) => g.name).filter((n) => n && String(n).trim());
-            for (const g of games) merge(platform, g);
-            if (games.length === 100) props.setProperty('page_' + rawgId, String(Number(props.getProperty('page_' + rawgId) || '1') + 1));
-            added += games.length;
-            rawgStatus.push(platform + ':+' + games.length);
-          } catch (err) {
-            rawgStatus.push(platform + ':err');
-          }
-        });
-        chunk.length = 0;
-        chunk.push(...retry);
-        if (retry.length > 0) {
-          sleep(5000); // ждём окно rate-limit
-          continue;
-        }
-        break;
-      }
-      if (i + BATCH < rawgIds.length) sleep(2500);
-    }
-  }
-  gamesRef.clear();
-  const flat = [];
-  for (const [platform, games] of pairs) for (const game of games) flat.push([platform, game]);
-  if (flat.length) gamesRef.getRange(1, 1, flat.length, 2).setValues(flat);
+  readGamesFromSheet(gamesRef, pairs);
+  writeGamesToSheet(gamesRef, pairs);
   gamesRef.hideSheet();
 
   // ============ 3. ЛИСТ «Solo RGG» ============
@@ -283,17 +344,379 @@ function buildSoloRggTable() {
   sheet.getRange('A2:J2').setBorder(false, false, true, false, false, false, '#ffffff', SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
 
   SpreadsheetApp.flush();
-  SpreadsheetApp.getUi().alert(
+
+  // ============ 7. ИГРЫ С games.rgg.land И rgg.land/lists (не критичны: база уже записана) ============
+  const rawgStatus = [];
+  let added = 0;
+  try {
+    added = fetchRggGames(pairs, rawgStatus);
+  } catch (err) {
+    rawgStatus.push('games.rgg.land:ошибка — ' + err.message);
+  }
+  try {
+    added += fetchCatGames(pairs, rawgStatus);
+  } catch (err) {
+    rawgStatus.push('cat.txt:ошибка — ' + err.message);
+  }
+  try {
+    added += fetchRawgGames(pairs, rawgStatus);
+  } catch (err) {
+    rawgStatus.push('rawg.io:ошибка — ' + err.message);
+  }
+  try {
+    added += fetchWikiGames(pairs, rawgStatus);
+  } catch (err) {
+    rawgStatus.push('wikipedia:ошибка — ' + err.message);
+  }
+  writeGamesToSheet(gamesRef, pairs);
+  applyGameValidationForRows(sheet, gamesRef, 3, 102);
+  gamesRef.hideSheet();
+
+  installOnEditTrigger();
+  notify(
     'Готово! Таблица «Solo RGG» развёрнута.\n\n' +
     '• Дата — проставляется сама при заполнении строки\n' +
     '• Платформа/Мод/Результат/Инвентарь/Событие — выпадающие списки\n' +
-    '• Игра — каскад по платформе (RAWG + база)\n' +
+    '• Игра — каскад по платформе (база + игры ивента)\n' +
     '• Ячейки красятся в цвет выбранного значения\n' +
-    'Докачано с RAWG: ' + added + ' игр.\n\n' +
-    'RAWG по платформам:\n' + rawgStatus.join(', ') +
-    '\n\nНастрой триггер: Триггеры → Добавить → onEdit, «При изменении».\n' +
-    'Запусти скрипт ещё 2–3 раза для докачки.',
+    'Игр добавлено: ' + added + '.\n\n' +
+    rawgStatus.join(', ') +
+    '\n\nТриггер onEdit установлен автоматически — каскад «Игра»\n' +
+    'работает в любом браузере и для всех, у кого есть доступ.\n' +
+    'Продолжить докачку: запусти downloadRggGames ещё раз.',
   );
+}
+
+/**
+ * УСТАНОВКА ТРИГГЕРА onEdit на текущую таблицу (идемпотентно).
+ * Без него каскад «Игра» не обновляется при выборе платформы.
+ * Вызывается сам из buildSoloRggTable; для копий можно запустить вручную.
+ */
+function installOnEditTrigger() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const has = ScriptApp.getProjectTriggers().some(
+    (t) =>
+      t.getHandlerFunction() === 'onEdit' &&
+      t.getEventType() === ScriptApp.EventType.ON_EDIT &&
+      t.getTriggerSourceId() === ss.getId(),
+  );
+  if (has) {
+    return;
+  }
+  ScriptApp.newTrigger('onEdit').forSpreadsheet(ss).onEdit().create();
+}
+
+/**
+ * ПОКАЗ ИТОГА: alert, если UI доступен; иначе (запуск из триггера или
+ * без контекста таблицы) — пишем в журнал «Просмотр → Журналы».
+ */
+function notify(message) {
+  Logger.log(message);
+  try {
+    SpreadsheetApp.getUi().alert(message);
+  } catch (err) {
+    // UI недоступен (Cannot call getUi() from this context) — итог уже в журнале.
+  }
+}
+
+/** Сливает строки листа «Игры» (платформа,игра) в Map платформа → Set(игры). */
+function readGamesFromSheet(gamesRef, pairs) {
+  if (gamesRef.getLastRow() < 1) return;
+  const values = gamesRef.getRange(1, 1, gamesRef.getLastRow(), 2).getValues();
+  for (const row of values) {
+    const pl = String(row[0]).trim();
+    const gm = String(row[1]).trim();
+    if (!pl || !gm) continue;
+    if (!pairs.has(pl)) pairs.set(pl, new Set());
+    pairs.get(pl).add(gm);
+  }
+}
+
+/** Пишет Map платформа → Set(игры) в лист «Игры» (без дублей). */
+function writeGamesToSheet(gamesRef, pairs) {
+  const flat = [];
+  for (const [platform, games] of pairs) for (const game of games) flat.push([platform, game]);
+  gamesRef.clear();
+  if (flat.length) gamesRef.getRange(1, 1, flat.length, 2).setValues(flat);
+}
+
+/**
+ * Тянет список игр ивента с https://games.rgg.land/itch/ и сливает в pairs
+ * под платформу RGG_GAMES_PLATFORM. Названия берутся со страниц itch.io
+ * (тег <title> до « by »), slug — только как запасной вариант.
+ * Возвращает число добавленных игр.
+ */
+function fetchRggGames(pairs, status) {
+  const res = UrlFetchApp.fetch('https://games.rgg.land/itch/', { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) {
+    status.push('HTTP' + res.getResponseCode());
+    return 0;
+  }
+  const html = res.getContentText();
+  const linkRe = /<a href="[a-z0-9-]+">(https:\/\/[a-z0-9.-]+\.itch\.io\/[a-z0-9-]+)<\/a>/g;
+  const urls = [...html.matchAll(linkRe)].map((m) => m[1]);
+  const pl = RGG_GAMES_PLATFORM.trim();
+  if (!pairs.has(pl)) pairs.set(pl, new Set());
+  let added = 0;
+  const BATCH = 8;
+  for (let i = 0; i < urls.length; i += BATCH) {
+    const chunk = urls.slice(i, i + BATCH);
+    const responses = UrlFetchApp.fetchAll(chunk.map((url) => ({ url, muteHttpExceptions: true })));
+    chunk.forEach((url, idx) => {
+      const page = responses[idx];
+      let name = '';
+      if (page && page.getResponseCode() === 200) {
+        const match = /<title>([^<]*)<\/title>/.exec(page.getContentText());
+        if (match) {
+          name = unescapeHtml(match[1].split(' by ')[0].trim());
+        }
+      }
+      if (!name) {
+        // Запасной вариант — имя из slug: six-cats-under → Six Cats Under.
+        const slug = url.split('/').pop();
+        name = slug.split('-').filter(Boolean).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+      if (!name) return;
+      if (!pairs.get(pl).has(name)) {
+        pairs.get(pl).add(name);
+        added++;
+      }
+    });
+    if (i + BATCH < urls.length) Utilities.sleep(500);
+  }
+  status.push('itch.io: ' + added + ' игр с названиями под «' + pl + '»');
+  return added;
+}
+
+/** Раскодирует HTML-сущности в названии игры. */
+function unescapeHtml(value) {
+  return value
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, '\'')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ');
+}
+
+/**
+ * Тянет полный список игр RGG (rgg.land/lists/cat.txt, строки «Игра (Платформа)»)
+ * и сливает в pairs под наши платформы — не больше CAT_GAMES_LIMIT на каждую.
+ * Возвращает число добавленных игр.
+ */
+function fetchCatGames(pairs, status) {
+  const res = UrlFetchApp.fetch(CAT_LIST_URL, { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) {
+    status.push('cat.txt:HTTP' + res.getResponseCode());
+    return 0;
+  }
+  const counts = new Map();
+  let added = 0;
+  for (const rawLine of res.getContentText().split('\n')) {
+    const match = /^(.+) \(([^)]+)\)\s*$/.exec(rawLine.trim());
+    if (!match) continue;
+    const pl = CAT_PLATFORM_ALIASES[match[2]];
+    if (!pl) continue;
+    const used = counts.get(pl) || 0;
+    if (used >= CAT_GAMES_LIMIT) continue;
+    const name = match[1].trim();
+    if (!name) continue;
+    if (!pairs.has(pl)) pairs.set(pl, new Set());
+    if (pairs.get(pl).has(name)) continue;
+    pairs.get(pl).add(name);
+    counts.set(pl, used + 1);
+    added++;
+  }
+  status.push('cat.txt: +' + added + ' игр по ' + counts.size + ' платформам');
+  return added;
+}
+
+/**
+ * Дополняет списки топ-играми с RAWG (до RAWG_PAGES × 100 на платформу,
+ * по рейтингу) — теми, которых нет в cat.txt. Возвращает число добавленных.
+ */
+function fetchRawgGames(pairs, status) {
+  const BATCH = 6;
+  const sleep = (ms) => Utilities.sleep(ms);
+  const requests = [];
+  for (const [pl, id] of rawgPlatformMap()) {
+    for (let page = 1; page <= RAWG_PAGES; page++) {
+      requests.push({
+        pl,
+        url: 'https://api.rawg.io/api/games?key=' + RAWG_KEY +
+          '&platforms=' + id + '&page_size=100&page=' + page + '&ordering=-rating',
+      });
+    }
+  }
+  let added = 0;
+  let errors = 0;
+  for (let i = 0; i < requests.length; i += BATCH) {
+    const chunk = requests.slice(i, i + BATCH);
+    const responses = UrlFetchApp.fetchAll(
+      chunk.map((r) => ({ url: r.url, muteHttpExceptions: true })),
+    );
+    chunk.forEach((req, idx) => {
+      const res = responses[idx];
+      if (!res || res.getResponseCode() !== 200) {
+        errors++;
+        return;
+      }
+      try {
+        const json = JSON.parse(res.getContentText());
+        for (const g of json.results || []) {
+          const name = String(g.name || '').trim();
+          if (!name) continue;
+          if (!pairs.has(req.pl)) pairs.set(req.pl, new Set());
+          if (pairs.get(req.pl).has(name)) continue;
+          pairs.get(req.pl).add(name);
+          added++;
+        }
+      } catch (err) {
+        errors++;
+      }
+    });
+    if (i + BATCH < requests.length) sleep(2500);
+  }
+  status.push('rawg.io: +' + added + ' игр' + (errors > 0 ? ' (' + errors + ' ошибок)' : ''));
+  return added;
+}
+
+/** Наши платформы → id платформ RAWG (проверено по API). */
+function rawgPlatformMap() {
+  return [
+    ['NES', 49], ['SNES', 79], ['N64', 83], ['GameCube', 105],
+    ['Game Boy', 26], ['Game Boy Color', 43], ['GBA', 24],
+    ['Virtual Boy', 10], ['Famicom Disk System', 58],
+    ['SMD', 167], ['Sega CD', 119], ['32X', 117],
+    ['Master System', 74], ['Game Gear', 77], ['Saturn', 107], ['Dreamcast', 106],
+    ['SG-1000', 14], ['PS1', 27], ['PS2', 15], ['PSP', 17],
+    ['STEAM', 4], ['PC', 4], ['Neo Geo', 12],
+    ['Atari 2600', 23], ['Atari 5200', 31], ['Atari 7800', 28],
+    ['Atari Lynx', 46], ['Atari Jaguar', 112], ['Atari ST', 34],
+    ['Commodore 64', 166], ['Amiga', 166], ['Apple II', 41],
+    ['3DO', 111], ['TG16', 86],
+  ];
+}
+
+/**
+ * Дополняет списки играми из категорий Википедии (до 2 порций по 500 на
+ * платформу). Запросы последовательные с паузами — Википедия банит за
+ * параллельный скрейпинг (429). Возвращает число добавленных игр.
+ */
+function fetchWikiGames(pairs, status) {
+  const sleep = (ms) => Utilities.sleep(ms);
+  let added = 0;
+  const skipped = [];
+  for (const [pl, cat] of WIKI_CATEGORIES) {
+    const names = [];
+    let continueToken = null;
+    for (let chunk = 0; chunk < 2; chunk++) {
+      let url = 'https://en.wikipedia.org/w/api.php?action=query&list=categorymembers' +
+        '&cmtitle=Category:' + encodeURIComponent(cat) +
+        '&cmtype=page&cmlimit=500&format=json';
+      if (continueToken) url += '&cmcontinue=' + encodeURIComponent(continueToken);
+      const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+      if (res.getResponseCode() !== 200) {
+        skipped.push(pl);
+        break;
+      }
+      try {
+        const json = JSON.parse(res.getContentText());
+        for (const member of json.query.categorymembers || []) {
+          const name = String(member.title || '').trim();
+          // Пропускаем служебные статьи «List of ...».
+          if (name && !name.toLowerCase().startsWith('list of ')) names.push(name);
+        }
+        continueToken = json.continue ? json.continue.cmcontinue : null;
+        if (!continueToken) break;
+        sleep(1500);
+      } catch (err) {
+        skipped.push(pl);
+        break;
+      }
+    }
+    if (names.length > 0) {
+      if (!pairs.has(pl)) pairs.set(pl, new Set());
+      for (const name of names) {
+        if (pairs.get(pl).has(name)) continue;
+        pairs.get(pl).add(name);
+        added++;
+      }
+    }
+    sleep(1500);
+  }
+  status.push(
+    'wikipedia: +' + added + ' игр' +
+    (skipped.length > 0 ? ' (пропущено: ' + skipped.join(', ') + ')' : ''),
+  );
+  return added;
+}
+
+/**
+ * ДОКАЧКА ИГР — запускай отдельно, сколько нужно раз.
+ * Дописывает новые игры (ивент + cat.txt + RAWG) в лист «Игры» (без дублей).
+ */
+function downloadRggGames() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const gamesRef = ss.getSheetByName('Игры') || ss.insertSheet('Игры');
+  const pairs = new Map();
+  readGamesFromSheet(gamesRef, pairs);
+  const status = [];
+  let added = 0;
+  try {
+    added += fetchRggGames(pairs, status);
+  } catch (err) {
+    status.push('games.rgg.land:ошибка');
+  }
+  try {
+    added += fetchCatGames(pairs, status);
+  } catch (err) {
+    status.push('cat.txt:ошибка');
+  }
+  try {
+    added += fetchRawgGames(pairs, status);
+  } catch (err) {
+    status.push('rawg.io:ошибка');
+  }
+  try {
+    added += fetchWikiGames(pairs, status);
+  } catch (err) {
+    status.push('wikipedia:ошибка');
+  }
+  writeGamesToSheet(gamesRef, pairs);
+  gamesRef.hideSheet();
+  const sheet = ss.getSheetByName('Solo RGG');
+  if (sheet && gamesRef.getLastRow() > 0) {
+    applyGameValidationForRows(sheet, gamesRef, 3, 102);
+  }
+  notify(
+    'Докачка завершена.\n\n' +
+    'Добавлено игр: ' + added + '.\n\n' +
+    status.join(', ') +
+    '\n\nЗапусти downloadRggGames ещё раз, чтобы продолжить.',
+  );
+}
+
+/**
+ * onOpen: при открытии таблицы обновляет каскад «Игра» (D) для строк,
+ * где платформа уже выбрана. Простой триггер — работает автоматически
+ * в любой копии таблицы, без установки и авторизации.
+ */
+function onOpen() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Solo RGG');
+    if (!sheet) {
+      return;
+    }
+    const gamesRef = ss.getSheetByName('Игры');
+    if (!gamesRef || gamesRef.getLastRow() < 1) {
+      return;
+    }
+    applyGameValidationForRows(sheet, gamesRef, 3, 102);
+  } catch (err) {
+    // Копия без справочника игр или открыта не в режиме редактора — молча пропускаем.
+  }
 }
 
 /**
@@ -333,15 +756,26 @@ function onEdit(e) {
   }
   const cell = sheet.getRange(row, 4);
   if (startRow < 0) {
-    cell.setDataValidation(null);
+    // Платформа не выбрана или в списке нет её игр — показываем ВСЕ игры.
+    setAllGamesValidation(sheet, gamesRef, row);
     return;
   }
   const rule = SpreadsheetApp.newDataValidation()
     .requireValueInRange(gamesRef.getRange(startRow, 2, count, 1), true)
-    .setAllowInvalid(false)
+    .setAllowInvalid(true) // можно ввести свою игру, которой нет в списке
     .setHelpText('Игры платформы: ' + platform)
     .build();
   cell.setDataValidation(rule);
+}
+
+/** Ставит на колонку D список ВСЕХ игр (когда платформа не выбрана). */
+function setAllGamesValidation(sheet, gamesRef, row) {
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInRange(gamesRef.getRange(1, 2, gamesRef.getLastRow(), 1), true)
+    .setAllowInvalid(true)
+    .setHelpText('Все игры — можно ввести свою')
+    .build();
+  sheet.getRange(row, 4).setDataValidation(rule);
 }
 
 /** Ставит каскадные валидации на колонку D по текущим платформам (B). */
@@ -360,34 +794,17 @@ function applyGameValidationForRows(sheet, gamesRef, startRow, endRow) {
     const info = rangesOf.get(platform);
     const cell = sheet.getRange(startRow + r, 4);
     if (!info) {
-      cell.setDataValidation(null);
+      // Платформа не выбрана — показываем ВСЕ игры (можно ввести свою).
+      setAllGamesValidation(sheet, gamesRef, startRow + r);
       continue;
     }
     const rule = SpreadsheetApp.newDataValidation()
       .requireValueInRange(gamesRef.getRange(info.startRow, 2, info.count, 1), true)
-      .setAllowInvalid(false)
+      .setAllowInvalid(true) // можно ввести свою игру, которой нет в списке
       .setHelpText('Игры платформы: ' + platform)
       .build();
     cell.setDataValidation(rule);
   }
-}
-
-/** Жёсткий маппинг наших платформ → id платформ RAWG (проверено по API). */
-function rawgPlatformMap() {
-  const ids = [
-    ['NES', 49], ['SNES', 79], ['N64', 83], ['GameCube', 105],
-    ['Game Boy', 26], ['Game Boy Color', 43], ['GBA', 24],
-    ['SMD', 167], ['Sega CD', 119], ['32X', 117],
-    ['Master System', 74], ['Game Gear', 77], ['Saturn', 107], ['Dreamcast', 106],
-    ['PS1', 27], ['PS2', 15], ['PSP', 17],
-    ['STEAM', 4], ['PC', 4],
-    ['Neo Geo', 12],
-    ['Atari 2600', 23], ['Atari 5200', 31], ['Atari 7800', 28],
-    ['Atari Lynx', 46], ['Atari Jaguar', 112], ['Atari ST', 34],
-    ['Commodore 64', 166], ['Amiga', 166], ['Apple II', 41],
-    ['3DO', 111],
-  ];
-  return ids;
 }
 
 /** Все платформы: [название, группа, цвет]. */
@@ -398,7 +815,7 @@ function platformList() {
     ['Game Boy', 'Nintendo', '#e53935'], ['Game Boy Color', 'Nintendo', '#e53935'],
     ['GBA', 'Nintendo', '#e53935'], ['Virtual Boy', 'Nintendo', '#e53935'],
     ['Famicom Disk System', 'Nintendo', '#e53935'],
-    ['SMD', 'Sega', '#1e88e5'], ['SMD+2', 'Sega', '#1e88e5'],
+    ['SMD', 'Sega', '#1e88e5'],
     ['Sega CD', 'Sega', '#1e88e5'], ['32X', 'Sega', '#1e88e5'],
     ['Master System', 'Sega', '#1e88e5'], ['Game Gear', 'Sega', '#1e88e5'],
     ['Saturn', 'Sega', '#1e88e5'], ['Dreamcast', 'Sega', '#1e88e5'],
@@ -411,7 +828,7 @@ function platformList() {
     ['Atari 2600', 'Atari', '#6d4c41'], ['Atari 5200', 'Atari', '#6d4c41'],
     ['Atari 7800', 'Atari', '#6d4c41'], ['Atari Lynx', 'Atari', '#6d4c41'],
     ['Atari Jaguar', 'Atari', '#6d4c41'], ['Atari ST', 'Atari', '#6d4c41'],
-    ['ZX Spectrum', 'Компьютеры', '#546e7a'], ['ZXspec', 'Компьютеры', '#546e7a'],
+    ['ZX Spectrum', 'Компьютеры', '#546e7a'],
     ['DOS', 'Компьютеры', '#546e7a'], ['Commodore 64', 'Компьютеры', '#546e7a'],
     ['Amiga', 'Компьютеры', '#546e7a'], ['MSX', 'Компьютеры', '#546e7a'],
     ['Amstrad CPC', 'Компьютеры', '#546e7a'], ['Apple II', 'Компьютеры', '#546e7a'],
@@ -479,4 +896,62 @@ function gameCatalog() {
     ['Vectrex', ['Star Castle', 'Berzerk', 'Minestorm', 'Pole Position', 'Armor Attack', 'Scramble']],
     ['Аркада', ['Pac-Man', 'Space Invaders', 'Donkey Kong', 'Galaga', 'Street Fighter II', 'Metal Slug', 'Mortal Kombat', 'Out Run', 'After Burner', 'NBA Jam', 'Double Dragon', 'Bubble Bobble', 'Frogger', 'Joust']],
   ];
+}
+/**
+ * ДИАГНОСТИКА: показывает состояние таблицы и триггеров.
+ * Запусти и пришли текст результата (или смотри в Просмотр → Журналы).
+ */
+function diagnose() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const out = [];
+  const gamesRef = ss.getSheetByName('Игры');
+  out.push('Лист «Игры»: ' + (gamesRef ? 'ЕСТЬ' : 'НЕТ'));
+  if (gamesRef) {
+    const last = gamesRef.getLastRow();
+    out.push('Строк в «Игры»: ' + last);
+    if (last > 0) {
+      const values = gamesRef.getRange(1, 1, last, 2).getValues();
+      const byPlat = new Map();
+      for (const row of values) {
+        const p = String(row[0]).trim();
+        if (!p) continue;
+        if (!byPlat.has(p)) byPlat.set(p, 0);
+        byPlat.set(p, byPlat.get(p) + 1);
+      }
+      out.push('Игр по платформам: ' + [...byPlat.entries()].map(([p, c]) => p + '=' + c).join(', '));
+    }
+  }
+  const sheet = ss.getSheetByName('Solo RGG');
+  out.push('Лист «Solo RGG»: ' + (sheet ? 'ЕСТЬ' : 'НЕТ'));
+  if (sheet) {
+    const b = sheet.getRange('B3:B102').getValues().flat();
+    const filled = b.filter((x) => String(x).trim() !== '').length;
+    out.push('Заполнено платформ в B3:B102: ' + filled);
+  }
+  const triggers = ScriptApp.getProjectTriggers()
+    .map((t) => t.getHandlerFunction() + ' (' + t.getEventType() + ')')
+    .join(', ');
+  out.push('Триггеры: ' + (triggers || 'НЕТ'));
+  notify(out.join('\n'));
+}
+
+/**
+ * СТАВИТ СПИСКИ ИГР ПРЯМО СЕЙЧАС: для всех строк, где платформа уже выбрана,
+ * применяет каскад (без ожидания onEdit). Запусти после diagnose.
+ */
+function setupGameLists() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Solo RGG');
+  const gamesRef = ss.getSheetByName('Игры');
+  if (!sheet || !gamesRef) {
+    notify('Не найден лист «Solo RGG» или «Игры» — сначала запусти buildSoloRggTable.');
+    return;
+  }
+  if (gamesRef.getLastRow() < 1) {
+    notify('Справочник «Игры» пуст — сначала запусти buildSoloRggTable (или downloadRggGames).');
+    return;
+  }
+  applyGameValidationForRows(sheet, gamesRef, 3, 102);
+  installOnEditTrigger();
+  notify('Готово: каскад «Игра» применён к строкам с выбранной платформой.');
 }

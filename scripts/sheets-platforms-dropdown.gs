@@ -2,10 +2,11 @@
  * Справочник платформ для выпадающего списка в Solo RGG-таблице.
  * Запуск: Расширения → Apps Script → вставить → Запустить.
  * Скрипт:
- *  1. Находит лист с колонкой «Платформа» (по заголовку);
+ *  1. Находит лист с колонкой «Платформа» (по названию в любой строке шапки);
  *  2. Создаёт скрытый лист «Платформы» со всеми 50 платформами,
  *     раскрашенными по группам (цвета чипов в выпадающем списке);
  *  3. Ставит выпадающий список (из диапазона) на колонку «Платформа».
+ * Если UI недоступен — итог в журнале: Просмотр → Журналы.
  */
 function addPlatformsDropdown() {
   const PLATFORMS = [
@@ -38,10 +39,12 @@ function addPlatformsDropdown() {
   ];
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const target = findSheetWithPlatformColumn(ss);
-  if (!target) {
-    throw new Error('Не найден лист с колонкой «Платформа» (заголовок в первой строке).');
+  const found = findSheetWithPlatformColumn(ss);
+  if (!found) {
+    throw new Error('Не найден лист с колонкой «Платформа» (название в шапке).');
   }
+  const target = found.sheet;
+  const col = found.col + 1;
 
   // --- справочник «Платформы» ---
   const ref = ss.getSheetByName('Платформы') || ss.insertSheet('Платформы');
@@ -52,15 +55,9 @@ function addPlatformsDropdown() {
   }
   ref.hideSheet();
 
-  // --- колонка «Платформа» ---
-  const headers = target.getRange(1, 1, 1, target.getLastColumn()).getValues()[0];
-  const colIndex = headers.findIndex((h) => String(h).trim().toLowerCase() === 'платформа');
-  if (colIndex < 0) {
-    throw new Error('Колонка «Платформа» не найдена в заголовках листа.');
-  }
-  const col = colIndex + 1;
+  // --- колонка «Платформа» (строка шапки уже найдена) ---
   const lastRow = Math.max(target.getLastRow(), 2);
-  const dataRange = target.getRange(2, col, Math.max(lastRow - 1, 1), 1);
+  const dataRange = target.getRange(found.headerRow + 2, col, Math.max(lastRow - found.headerRow - 1, 1), 1);
 
   const rule = SpreadsheetApp.newDataValidation()
     .requireValueInRange(ref.getRange(1, 1, PLATFORMS.length, 1), true)
@@ -70,18 +67,66 @@ function addPlatformsDropdown() {
   dataRange.setDataValidation(rule);
 
   SpreadsheetApp.flush();
-  SpreadsheetApp.getUi().alert(
-    `Готово!\n\nСправочник «Платформы» (50 платформ с цветами) создан.\nВыпадающий список поставлен на колонку «Платформа» листа «${target.getName()}».\n\nСтроки 2–${lastRow} — отмечены.`,
+  notify(
+    `Готово!\n\nСправочник «Платформы» (50 платформ с цветами) создан.\nВыпадающий список поставлен на колонку «Платформа» (${String.fromCharCode(65 + col - 1)}) листа «${target.getName()}».\n\nСтроки ${found.headerRow + 2}–${lastRow} — отмечены.`,
   );
 }
 
-/** Ищет лист, у которого в первой строке есть заголовок «Платформа». */
+/** Показывает итог: alert, если UI доступен; иначе — в журнал (Просмотр → Журналы). */
+function notify(message) {
+  Logger.log(message);
+  try {
+    SpreadsheetApp.getUi().alert(message);
+  } catch (err) {
+    // UI недоступен — итог уже в журнале.
+  }
+}
+
+const PLATFORM_KEYWORDS = ['платформа', 'платформы', 'platform', 'консоль', 'console', 'система', 'system'];
+
+/** Нормализация заголовка для сравнения (регистр/пробелы не важны). */
+function normalizeHeader(value) {
+  return String(value).trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/** Разбивает заголовок на слова. */
+function headerWords(value) {
+  return normalizeHeader(value).split(/[^\p{L}\p{N}]+/u).filter((w) => w !== '');
+}
+
+/** Совпадение заголовка с ключевым словом: слово/префикс (стемминг «платформы»↔«платформа»). */
+function headerMatches(header, keyword) {
+  const h = normalizeHeader(header);
+  const k = normalizeHeader(keyword);
+  if (!h || !k) return false;
+  if (h === k) return true;
+  for (const word of headerWords(header)) {
+    if (word === k) return true;
+    if (word.startsWith(k) || k.startsWith(word)) return true;
+    const min = Math.min(word.length, k.length);
+    if (min >= 4 && word.slice(0, min - 1) === k.slice(0, min - 1)) return true;
+  }
+  return false;
+}
+
+/** Индекс колонки с узнаваемым заголовком (или -1). */
+function findHeaderColumn(line, keywords) {
+  for (let c = 0; c < line.length; c++) {
+    for (const kw of keywords) {
+      if (headerMatches(line[c], kw)) return c;
+    }
+  }
+  return -1;
+}
+
+/** Ищет лист с колонкой «Платформа» в любой строке шапки (до 100 строк). */
 function findSheetWithPlatformColumn(ss) {
   const sheets = ss.getSheets();
   for (const sheet of sheets) {
-    const firstRow = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
-    if (firstRow.some((h) => String(h).trim().toLowerCase() === 'платформа')) {
-      return sheet;
+    const rows = sheet.getRange(1, 1, Math.min(100, Math.max(sheet.getLastRow(), 1)), Math.max(sheet.getLastColumn(), 1)).getValues();
+    for (let r = 0; r < rows.length; r++) {
+      const col = findHeaderColumn(rows[r], PLATFORM_KEYWORDS);
+      if (col >= 0) return { sheet, col, headerRow: r };
     }
   }
   return null;

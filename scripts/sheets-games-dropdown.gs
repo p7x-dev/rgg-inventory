@@ -8,38 +8,36 @@
  * ВАЖНО: если в строке поменять платформу — список обновится после повторного
  * запуска скрипта (так же, как после добавления новых игр).
  *
+ * Колонки «Платформа» и «Игра» ищутся по названиям в любой строке шапки
+ * (заголовки могут лежать не в первой строке); данные читаются под шапкой.
+ *
  * Запуск: addGamesDropdown
  */
 function addGamesDropdown() {
   const REF_NAME = 'Игры';
-  const PLATFORM_NAMES = ['платформа', 'platform', 'консоль', 'console'];
+  const PLATFORM_NAMES = ['платформа', 'платформы', 'platform', 'консоль', 'console', 'система', 'system'];
   const GAME_NAMES = ['игра', 'игры', 'game', 'games', 'название', 'title'];
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  // 1. Ищем лист: колонки «Платформа» и «Игра» (могут быть в разных строках).
+  // 1. Ищем лист: колонки «Платформа» и «Игра» (в любой строке шапки).
   let target = null;
+  let headerRow = -1;
   let colP = -1;
   let colG = -1;
   for (const sheet of ss.getSheets()) {
-    const rows = sheet.getRange(1, 1, 50, Math.max(sheet.getLastColumn(), 1)).getValues();
+    const rows = sheet.getRange(1, 1, Math.min(100, Math.max(sheet.getLastRow(), 1)), Math.max(sheet.getLastColumn(), 1)).getValues();
     let foundP = -1;
     let foundG = -1;
     for (let r = 0; r < rows.length && (foundP < 0 || foundG < 0); r++) {
-      const line = rows[r].map((h) => String(h).trim().toLowerCase());
-      if (foundP < 0) {
-        const p = line.findIndex((h) => PLATFORM_NAMES.includes(h));
-        if (p >= 0) foundP = p + 1;
-      }
-      if (foundG < 0) {
-        const g = line.findIndex((h) => GAME_NAMES.includes(h));
-        if (g >= 0) foundG = g + 1;
-      }
+      if (foundP < 0) foundP = findHeaderColumn(rows[r], PLATFORM_NAMES);
+      if (foundG < 0) foundG = findHeaderColumn(rows[r], GAME_NAMES);
     }
     if (foundP >= 0 && foundG >= 0) {
       target = sheet;
-      colP = foundP;
-      colG = foundG;
+      headerRow = rows.findIndex((line) => findHeaderColumn(line, PLATFORM_NAMES) >= 0);
+      colP = foundP + 1;
+      colG = foundG + 1;
       break;
     }
   }
@@ -54,9 +52,9 @@ function addGamesDropdown() {
     throw new Error('Колонки не найдены. Заголовки первых строк листов:\n' + dump);
   }
 
-  // 2. Собираем пары платформа→игра из данных таблицы.
+  // 2. Собираем пары платформа→игра из данных таблицы (под строкой шапки).
   const lastDataRow = target.getLastRow();
-  const data = target.getRange(2, 1, Math.max(lastDataRow - 1, 1), Math.max(colP, colG)).getValues();
+  const data = target.getRange(headerRow + 2, 1, Math.max(lastDataRow - headerRow - 1, 1), Math.max(colP, colG)).getValues();
   const pairs = new Map(); // платформа -> Set(игр)
   for (const row of data) {
     const pl = String(row[colP - 1]).trim();
@@ -92,11 +90,11 @@ function addGamesDropdown() {
   }
 
   // 4. Построчно ставим валидацию: игры платформы текущей строки.
-  const rowsToUpdate = Math.max(lastDataRow - 1, 0);
+  const rowsToUpdate = Math.max(lastDataRow - headerRow - 1, 0);
   for (let i = 0; i < rowsToUpdate; i++) {
     const platform = String(data[i][colP - 1]).trim();
     const rangeInfo = rangesOf.get(platform);
-    const cell = target.getRange(i + 2, colG);
+    const cell = target.getRange(headerRow + 2 + i, colG);
     if (!rangeInfo) {
       cell.setDataValidation(null); // платформа без игр — свободный ввод
       continue;
@@ -111,9 +109,54 @@ function addGamesDropdown() {
   }
 
   SpreadsheetApp.flush();
-  SpreadsheetApp.getUi().alert(
+  notify(
     'Готово!\n\nКолонка «Игра» (стр. ' + colG + ') — каскадный список: игры показываются по выбранной платформе.\n\nСправочник «' + REF_NAME + '» скрыт (Вид → Скрытые листы), там можно дополнять игры.\n\nПосле изменения платформы в строке или добавления игр — запусти скрипт заново.',
   );
+}
+
+/** Показывает итог: alert, если UI доступен; иначе — в журнал (Просмотр → Журналы). */
+function notify(message) {
+  Logger.log(message);
+  try {
+    SpreadsheetApp.getUi().alert(message);
+  } catch (err) {
+    // UI недоступен — итог уже в журнале.
+  }
+}
+
+/** Нормализация заголовка для сравнения (регистр/пробелы не важны). */
+function normalizeHeader(value) {
+  return String(value).trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/** Разбивает заголовок на слова. */
+function headerWords(value) {
+  return normalizeHeader(value).split(/[^\p{L}\p{N}]+/u).filter((w) => w !== '');
+}
+
+/** Совпадение заголовка с ключевым словом: слово/префикс (стемминг «игры»↔«игра»). */
+function headerMatches(header, keyword) {
+  const h = normalizeHeader(header);
+  const k = normalizeHeader(keyword);
+  if (!h || !k) return false;
+  if (h === k) return true;
+  for (const word of headerWords(header)) {
+    if (word === k) return true;
+    if (word.startsWith(k) || k.startsWith(word)) return true;
+    const min = Math.min(word.length, k.length);
+    if (min >= 4 && word.slice(0, min - 1) === k.slice(0, min - 1)) return true;
+  }
+  return false;
+}
+
+/** Индекс колонки с узнаваемым заголовком (или -1). */
+function findHeaderColumn(line, keywords) {
+  for (let c = 0; c < line.length; c++) {
+    for (const kw of keywords) {
+      if (headerMatches(line[c], kw)) return c;
+    }
+  }
+  return -1;
 }
 
 /** Буква колонки по номеру (1 → A). */

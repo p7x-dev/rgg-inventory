@@ -11,37 +11,36 @@
  *
  * Нужен RAWG API-ключ (бесплатный на rawg.io/apidocs) — впиши в RAWG_KEY.
  * Запуск: Расширения → Apps Script → вставить всё → setupSoloTable → ▶ Запустить.
+ * Докачка игр из RAWG отдельно: downloadRawgGames → ▶ Запустить (сколько нужно раз).
+ * Колонки ищутся по названиям в любой строке шапки. Если UI недоступен —
+ * итог в журнале: Просмотр → Журналы.
  */
+const RAWG_KEY = '159a78471a7141bbafe4c1592b12162a'; // ← твой ключ RAWG
+
 function setupSoloTable() {
-  const RAWG_KEY = '159a78471a7141bbafe4c1592b12162a'; // ← твой ключ RAWG
-  const PLATFORM_NAMES = ['платформа', 'platform', 'консоль', 'console'];
+  const PLATFORM_NAMES = ['платформа', 'платформы', 'platform', 'консоль', 'console', 'система', 'system'];
   const GAME_NAMES = ['игра', 'игры', 'game', 'games', 'название', 'title'];
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  // ============ 1. ЛИСТ И КОЛОНКИ ============
+  // ============ 1. ЛИСТ И КОЛОНКИ (по названиям, шапка в любой строке) ============
   let target = null;
+  let headerRow = -1;
   let colP = -1;
   let colG = -1;
   for (const sheet of ss.getSheets()) {
-    const rows = sheet.getRange(1, 1, 50, Math.max(sheet.getLastColumn(), 1)).getValues();
+    const rows = sheet.getRange(1, 1, Math.min(100, Math.max(sheet.getLastRow(), 1)), Math.max(sheet.getLastColumn(), 1)).getValues();
     let foundP = -1;
     let foundG = -1;
     for (let r = 0; r < rows.length && (foundP < 0 || foundG < 0); r++) {
-      const line = rows[r].map((h) => String(h).trim().toLowerCase());
-      if (foundP < 0) {
-        const p = line.findIndex((h) => PLATFORM_NAMES.includes(h));
-        if (p >= 0) foundP = p + 1;
-      }
-      if (foundG < 0) {
-        const g = line.findIndex((h) => GAME_NAMES.includes(h));
-        if (g >= 0) foundG = g + 1;
-      }
+      if (foundP < 0) foundP = findHeaderColumn(rows[r], PLATFORM_NAMES);
+      if (foundG < 0) foundG = findHeaderColumn(rows[r], GAME_NAMES);
     }
     if (foundP >= 0 && foundG >= 0) {
       target = sheet;
-      colP = foundP;
-      colG = foundG;
+      headerRow = rows.findIndex((line) => findHeaderColumn(line, PLATFORM_NAMES) >= 0);
+      colP = foundP + 1;
+      colG = foundG + 1;
       break;
     }
   }
@@ -73,7 +72,7 @@ function setupSoloTable() {
     .setAllowInvalid(false)
     .setHelpText('Выбери платформу')
     .build();
-  target.getRange(2, colP, Math.max(lastRow - 1, 1), 1).setDataValidation(platformRule);
+  target.getRange(headerRow + 2, colP, Math.max(lastRow - headerRow - 1, 1), 1).setDataValidation(platformRule);
 
   // ============ 3. СБОР ИГР (каждая платформа — свой набор) ============
   const pairs = new Map();
@@ -88,8 +87,8 @@ function setupSoloTable() {
   for (const [pl, games] of gameCatalog()) {
     for (const g of games) merge(pl, g);
   }
-  // Записи из самой таблицы.
-  const data = target.getRange(2, 1, Math.max(lastRow - 1, 1), Math.max(colP, colG)).getValues();
+  // Записи из самой таблицы (под строкой шапки).
+  const data = target.getRange(headerRow + 2, 1, Math.max(target.getLastRow() - headerRow - 1, 1), Math.max(colP, colG)).getValues();
   for (const row of data) merge(row[colP - 1], row[colG - 1]);
   // Ручные дополнения из старого справочника «Игры».
   const oldRef = ss.getSheetByName('Игры');
@@ -100,22 +99,8 @@ function setupSoloTable() {
 
   // Докачка следующей порции игр с RAWG (по 100 на платформу за запуск).
   const props = PropertiesService.getScriptProperties();
-  let added = 0;
   const rawgReport = [];
-  if (RAWG_KEY) {
-    const rawgIds = rawgPlatformMap();
-    for (const [platform, rawgId] of rawgIds) {
-      const page = Number(props.getProperty('page_' + rawgId) || '1');
-      const games = fetchRawgGames(RAWG_KEY, rawgId, page);
-      for (const g of games) merge(platform, g);
-      if (games.length === 100) {
-        props.setProperty('page_' + rawgId, String(page + 1));
-      }
-      added += games.length;
-      rawgReport.push(platform + ':' + games.length);
-      Utilities.sleep(1300); // лимит RAWG ~20 запросов/мин
-    }
-  }
+  const added = fetchRawgGames(RAWG_KEY, rawgPlatformMap(), props, pairs, rawgReport);
 
   // ============ 4. СПРАВОЧНИК «Игры» ============
   const gamesRef = oldRef || ss.insertSheet('Игры');
@@ -140,11 +125,11 @@ function setupSoloTable() {
   }
 
   // ============ 5. КАСКАДНЫЕ СПИСКИ НА КОЛОНКУ «Игра» ============
-  const rowsToUpdate = Math.max(lastRow - 1, 0);
+  const rowsToUpdate = Math.max(target.getLastRow() - headerRow - 1, 0);
   for (let i = 0; i < rowsToUpdate; i++) {
     const platform = String(data[i][colP - 1]).trim();
     const rangeInfo = rangesOf.get(platform);
-    const cell = target.getRange(i + 2, colG);
+    const cell = target.getRange(headerRow + 2 + i, colG);
     if (!rangeInfo) {
       cell.setDataValidation(null);
       continue;
@@ -159,12 +144,12 @@ function setupSoloTable() {
   }
 
   SpreadsheetApp.flush();
-  SpreadsheetApp.getUi().alert(
+  notify(
     'Готово!\n\n' +
     '• Справочник «Игры»: ' + flat.length + ' игр (докачано с RAWG: ' + added + ')\n' +
     '• Каскадные списки — колонка «' + letter(colG) + '»\n\n' +
     'RAWG по платформам (название: добавлено):\n' + rawgReport.join(', ') +
-    '\n\nВсё не влезло за один запуск — ЗАПУСТИ СКРИПТ ЕЩЁ РАЗ 5–7,\n' +
+    '\n\nВсё не влезло за один запуск — запусти downloadRawgGames ещё несколько раз,\n' +
     'он докачает следующие порции игр для каждой платформы.',
   );
 }
@@ -242,17 +227,160 @@ function rawgPlatformMap() {
   return result;
 }
 
-/** Тянет страницу игр платформы с RAWG (отсортировано по рейтингу). */
-function fetchRawgGames(key, platformId, page) {
-  const url =
-    'https://api.rawg.io/api/games?key=' + key +
-    '&platforms=' + platformId +
-    '&page_size=100&page=' + page +
-    '&ordering=-rating';
-  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-  if (res.getResponseCode() !== 200) return [];
-  const json = JSON.parse(res.getContentText());
-  return (json.results || []).map((g) => g.name).filter((n) => n && String(n).trim());
+/** Показывает итог: alert, если UI доступен; иначе — в журнал (Просмотр → Журналы). */
+function notify(message) {
+  Logger.log(message);
+  try {
+    SpreadsheetApp.getUi().alert(message);
+  } catch (err) {
+    // UI недоступен — итог уже в журнале.
+  }
+}
+
+/** Нормализация заголовка для сравнения (регистр/пробелы не важны). */
+function normalizeHeader(value) {
+  return String(value).trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/** Разбивает заголовок на слова. */
+function headerWords(value) {
+  return normalizeHeader(value).split(/[^\p{L}\p{N}]+/u).filter((w) => w !== '');
+}
+
+/** Совпадение заголовка с ключевым словом: слово/префикс (стемминг «игры»↔«игра»). */
+function headerMatches(header, keyword) {
+  const h = normalizeHeader(header);
+  const k = normalizeHeader(keyword);
+  if (!h || !k) return false;
+  if (h === k) return true;
+  for (const word of headerWords(header)) {
+    if (word === k) return true;
+    if (word.startsWith(k) || k.startsWith(word)) return true;
+    const min = Math.min(word.length, k.length);
+    if (min >= 4 && word.slice(0, min - 1) === k.slice(0, min - 1)) return true;
+  }
+  return false;
+}
+
+/** Индекс колонки с узнаваемым заголовком (или -1). */
+function findHeaderColumn(line, keywords) {
+  for (let c = 0; c < line.length; c++) {
+    for (const kw of keywords) {
+      if (headerMatches(line[c], kw)) return c;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Докачивает по одной странице (100 игр) на платформу из RAWG и сливает
+ * в pairs. Место запоминается в PropertiesService (page_<id>); платформы,
+ * у которых страницы закончились, помечаются done_<id> и больше не
+ * опрашиваются. Возвращает число добавленных игр.
+ */
+function fetchRawgGames(key, rawgIds, props, pairs, report) {
+  // Мелкие батчи (по 4) + повторы при 429: RAWG лимитирует ~20 запросов/мин.
+  const BATCH = 4;
+  const sleep = (ms) => Utilities.sleep(ms);
+  const todo = rawgIds.filter(([, id]) => !props.getProperty('done_' + id));
+  let added = 0;
+  const merge = (platform, game) => {
+    const pl = String(platform).trim();
+    const gm = String(game).trim();
+    if (!pl || !gm) return;
+    if (!pairs.has(pl)) pairs.set(pl, new Set());
+    pairs.get(pl).add(gm);
+  };
+  for (let i = 0; i < todo.length; i += BATCH) {
+    const chunk = todo.slice(i, i + BATCH);
+    const attempts = 3; // до 3 попыток на батч при rate-limit
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      const requests = chunk.map(([, id]) => {
+        const page = Number(props.getProperty('page_' + id) || '1');
+        return {
+          url: 'https://api.rawg.io/api/games?key=' + key +
+            '&platforms=' + id + '&page_size=100&page=' + page + '&ordering=-rating',
+          muteHttpExceptions: true,
+        };
+      });
+      const responses = UrlFetchApp.fetchAll(requests);
+      const retry = [];
+      chunk.forEach(([platform, id], idx) => {
+        const res = responses[idx];
+        const code = res ? res.getResponseCode() : 0;
+        if (code === 429) {
+          retry.push([platform, id]); // rate-limit — пробуем ещё раз
+          return;
+        }
+        if (code !== 200) {
+          report.push(platform + ':HTTP' + code);
+          return;
+        }
+        try {
+          const json = JSON.parse(res.getContentText());
+          const games = (json.results || []).map((g) => g.name).filter((n) => n && String(n).trim());
+          for (const g of games) merge(platform, g);
+          if (games.length === 100) {
+            props.setProperty('page_' + id, String(Number(props.getProperty('page_' + id) || '1') + 1));
+          } else {
+            props.setProperty('done_' + id, '1'); // страницы закончились
+          }
+          added += games.length;
+          report.push(platform + ':+' + games.length);
+        } catch (err) {
+          report.push(platform + ':err');
+        }
+      });
+      chunk.length = 0;
+      chunk.push(...retry);
+      if (retry.length > 0) {
+        sleep(5000); // ждём окно rate-limit
+        continue;
+      }
+      break;
+    }
+    if (i + BATCH < todo.length) sleep(2500);
+  }
+  return added;
+}
+
+/**
+ * ДОКАЧКА ИГР ИЗ RAWG — запускай отдельно, сколько нужно раз.
+ * Каждый запуск берёт следующую страницу по каждой платформе (место
+ * запоминается) и дописывает новые игры в лист «Игры». Платформы,
+ * у которых страницы закончились, больше не опрашиваются.
+ */
+function downloadRawgGames() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const gamesRef = ss.getSheetByName('Игры') || ss.insertSheet('Игры');
+  const pairs = new Map();
+  if (gamesRef.getLastRow() > 0) {
+    const oldRows = gamesRef.getRange(1, 1, gamesRef.getLastRow(), 2).getValues();
+    for (const row of oldRows) {
+      const pl = String(row[0]).trim();
+      const gm = String(row[1]).trim();
+      if (!pl || !gm) continue;
+      if (!pairs.has(pl)) pairs.set(pl, new Set());
+      pairs.get(pl).add(gm);
+    }
+  }
+  const props = PropertiesService.getScriptProperties();
+  const report = [];
+  const added = fetchRawgGames(RAWG_KEY, rawgPlatformMap(), props, pairs, report);
+  const flat = [];
+  for (const [platform, games] of pairs) for (const game of games) flat.push([platform, game]);
+  gamesRef.clear();
+  if (flat.length) gamesRef.getRange(1, 1, flat.length, 2).setValues(flat);
+  gamesRef.hideSheet();
+  const total = rawgPlatformMap().length;
+  const done = rawgPlatformMap().filter(([, id]) => props.getProperty('done_' + id)).length;
+  notify(
+    'Докачка RAWG завершена.\n\n' +
+    'Добавлено игр: ' + added + '.\n' +
+    'Осталось платформ в очереди: ' + (total - done) + ' из ' + total + '.\n\n' +
+    'RAWG по платформам:\n' + report.join(', ') +
+    '\n\nЗапусти downloadRawgGames ещё раз, чтобы продолжить докачку.',
+  );
 }
 
 /** Буква колонки по номеру (1 → A). */
