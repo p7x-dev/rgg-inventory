@@ -1,0 +1,26 @@
+.title {
+	overflow: hidden;
+	max-width: 100%;
+	white-space: nowrap;
+}
+
+.track {
+	display: inline-flex;
+	gap: 48px;
+	white-space: nowrap;
+}
+
+.track--marquee {
+	animation: title-scroll linear infinite;
+	will-change: transform;
+}
+
+@keyframes title-scroll {
+	from {
+		transform: translateX(0);
+	}
+
+	to {
+		transform: translateX(calc(-50% - 24px));
+	}
+}

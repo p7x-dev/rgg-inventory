@@ -1,13 +1,10 @@
-<section class="section">
-	<h2 class="section-title">Иконки</h2>
-
-	<div class="block">
-		<h3 class="block-title">Иконки из RGG</h3>
-		<p class="hint">
-			Каталог rgg.land: токен-аватар стримера и эмодзи с главной страницы. Клик по иконке назначит её выбранному
+<app-settings-panel title="Иконки">
+	<app-settings-block title="Иконки из RGG">
+		<app-settings-hint>
+			Каталог rgg.land: токен-аватар и эмодзи с главной страницы. Клик по иконке назначит её выбранному
 			предмету.
-		</p>
-		<div class="actions">
+		</app-settings-hint>
+		<app-settings-actions>
 			<button
 				tuiButton
 				type="button"
@@ -22,9 +19,9 @@
 					Авто-подбор по именам
 				</button>
 			}
-		</div>
+		</app-settings-actions>
 		@if (catalogError(); as message) {
-			<p class="status-error" role="alert">{{ message }}</p>
+			<app-settings-status kind="error">{{ message }}</app-settings-status>
 		}
 		@if (catalog().length > 0) {
 			<div class="catalog">
@@ -36,14 +33,13 @@
 				}
 			</div>
 		}
-	</div>
+	</app-settings-block>
 
-	<div class="block">
-		<h3 class="block-title">Пак иконок (zip)</h3>
-		<p class="hint">
+	<app-settings-block title="Пак иконок (zip)">
+		<app-settings-hint>
 			Файлы в архиве сопоставляются с предметами по имени: «паук.png» → предмет «Паук». Или выберите предмет и
 			назначьте иконку вручную.
-		</p>
+		</app-settings-hint>
 
 		<button
 			tuiButton
@@ -66,7 +62,7 @@
 			</tui-data-list>
 		</ng-template>
 
-		<div class="actions">
+		<app-settings-actions>
 			<label class="upload">
 				<input #zipInput type="file" accept=".zip,application/zip" hidden (change)="onZipSelected($event)" />
 				<button tuiButton type="button" [iconStart]="'@tui.upload'" (click)="zipInput.click()">
@@ -85,24 +81,23 @@
 					Иконка для выбранного предмета
 				</button>
 			</label>
-		</div>
+		</app-settings-actions>
 
 		@if (importError(); as message) {
-			<p class="status-error" role="alert">{{ message }}</p>
+			<app-settings-status kind="error">{{ message }}</app-settings-status>
 		}
 		@if (importReport(); as report) {
 			@if (report.matched.length > 0) {
-				<p class="status-ok">Сопоставлено: {{ report.matched.join(', ') }}</p>
+				<app-settings-status kind="ok">Сопоставлено: {{ report.matched.join(', ') }}</app-settings-status>
 			}
 			@if (report.unknown.length > 0) {
-				<p class="hint">Без совпадения: {{ report.unknown.join(', ') }}</p>
+				<app-settings-hint>Без совпадения: {{ report.unknown.join(', ') }}</app-settings-hint>
 			}
 		}
-	</div>
+	</app-settings-block>
 
 	@if (hasIcons()) {
-		<div class="block">
-			<h3 class="block-title">Мои иконки</h3>
+		<app-settings-block title="Мои иконки">
 			<ul class="icon-list">
 				@for (entry of icons() | keyvalue; track entry.key) {
 					<li class="icon-row">
@@ -119,6 +114,6 @@
 					</li>
 				}
 			</ul>
-		</div>
+		</app-settings-block>
 	}
-</section>
+</app-settings-panel>

@@ -1,0 +1,8 @@
+:host {
+	display: flex;
+	box-sizing: border-box;
+	min-height: 100%;
+	background: transparent;
+	color: var(--inv-text, #f3edff);
+	font-family: var(--inv-font, 'Rubik', 'Segoe UI', sans-serif);
+}

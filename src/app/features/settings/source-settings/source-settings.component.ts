@@ -1,9 +1,14 @@
 import type { InventoryLoadResult, InventorySourceId } from '@core/models/inventory.model';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SOLO_PLATFORMS, type SoloPlatform } from '@core/models/solo.model';
 import { InventoryStore } from '@core/stores/inventory.store';
 import { SettingsStore } from '@core/stores/settings.store';
 import { SoloStore } from '@core/stores/solo.store';
+import { SettingsHintComponent } from '@shared/ui/settings-hint/settings-hint.component';
+import { SettingsPanelComponent } from '@shared/ui/settings-panel/settings-panel.component';
+import { SettingsPresetRowComponent } from '@shared/ui/settings-preset-row/settings-preset-row.component';
+import { SettingsStatusComponent } from '@shared/ui/settings-status/settings-status.component';
 import { SettingsSwitchComponent } from '@shared/ui/settings-switch/settings-switch.component';
 import {
 	TuiButton,
@@ -39,6 +44,10 @@ type SourceOption = (typeof SOURCE_OPTIONS)[number];
 		TuiDropdownOpen,
 		TuiOption,
 		SettingsSwitchComponent,
+		SettingsPanelComponent,
+		SettingsHintComponent,
+		SettingsStatusComponent,
+		SettingsPresetRowComponent,
 	],
 	templateUrl: './source-settings.component.html',
 	styleUrl: './source-settings.component.scss',
@@ -126,7 +135,7 @@ export class SourceSettingsComponent {
 		}));
 	}
 
-	protected updateSolo(config: Partial<{ spreadsheetId: string; gid: string; rawgApiKey: string }>): void {
+	protected updateSolo(config: Partial<{ spreadsheetId: string; gid: string }>): void {
 		this.settingsStore.updateWith((current) => ({
 			...current,
 			sources: {
@@ -157,4 +166,74 @@ export class SourceSettingsComponent {
 	}
 
 	protected readonly sourceId = (source: SourceOption): InventorySourceId => source.id;
+
+	/** Все платформы Solo-хотбара для выбора в настройках. */
+	protected readonly soloPlatforms = SOLO_PLATFORMS;
+
+	/** Текст поля «Своя платформа». */
+	protected readonly customPlatformValue = signal('');
+
+	protected readonly selectedSoloPlatforms = computed(() => this.settingsStore.settings().sources.solo.platforms);
+
+	protected readonly customSoloPlatforms = computed(
+		() => this.settingsStore.settings().sources.solo.customPlatforms,
+	);
+
+	protected readonly allSoloPlatforms = computed(() => [
+		...SOLO_PLATFORMS,
+		...this.customSoloPlatforms().filter((platform) => !SOLO_PLATFORMS.includes(platform)),
+	]);
+
+	protected isSoloPlatformSelected(platform: SoloPlatform): boolean {
+		return this.selectedSoloPlatforms().includes(platform);
+	}
+
+	protected toggleSoloPlatform(platform: SoloPlatform): void {
+		const current = this.selectedSoloPlatforms();
+		const next = current.includes(platform)
+			? current.filter((item) => item !== platform)
+			: [...current, platform];
+		this.settingsStore.updateWith((state) => ({
+			...state,
+			sources: {
+				...state.sources,
+				solo: { ...state.sources.solo, platforms: next },
+			},
+		}));
+	}
+
+	/** Добавляет свою платформу (в customPlatforms и сразу в выбранные). */
+	protected addCustomPlatform(value: string): void {
+		const name = value.trim();
+		if (!name) {
+			return;
+		}
+		const currentCustom = this.customSoloPlatforms();
+		if (currentCustom.includes(name)) {
+			return;
+		}
+		const nextCustom = [...currentCustom, name];
+		const currentSelected = this.selectedSoloPlatforms();
+		const nextSelected = currentSelected.includes(name) ? currentSelected : [...currentSelected, name];
+		this.settingsStore.updateWith((state) => ({
+			...state,
+			sources: {
+				...state.sources,
+				solo: { ...state.sources.solo, customPlatforms: nextCustom, platforms: nextSelected },
+			},
+		}));
+	}
+
+	/** Удаляет свою платформу вместе с выбором. */
+	protected removeCustomPlatform(platform: SoloPlatform): void {
+		const nextCustom = this.customSoloPlatforms().filter((item) => item !== platform);
+		const nextSelected = this.selectedSoloPlatforms().filter((item) => item !== platform);
+		this.settingsStore.updateWith((state) => ({
+			...state,
+			sources: {
+				...state.sources,
+				solo: { ...state.sources.solo, customPlatforms: nextCustom, platforms: nextSelected },
+			},
+		}));
+	}
 }

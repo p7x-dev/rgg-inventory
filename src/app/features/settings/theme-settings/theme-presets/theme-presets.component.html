@@ -1,56 +1,58 @@
-<div class="presets" role="radiogroup" aria-label="Тема">
-	@for (preset of presets; track preset.id) {
-		<button
-			tuiButton
-			type="button"
-			[appearance]="themePreset() === preset.id ? 'primary' : 'flat'"
-			class="preset-button"
-			role="radio"
-			[attr.aria-checked]="themePreset() === preset.id"
-			(click)="selectPreset(preset)"
-		>
-			{{ preset.label }}
-		</button>
-	}
-	@if (customDesign()) {
-		<button
-			tuiButton
-			type="button"
-			[appearance]="isCustomTheme() ? 'primary' : 'flat'"
-			class="preset-button"
-			role="radio"
-			[attr.aria-checked]="isCustomTheme()"
-			(click)="selectPreset({ id: 'custom', label: 'Мой дизайн' })"
-		>
-			Мой дизайн
-		</button>
-	}
-	@for (saved of savedPresets(); track saved.id) {
-		<button
-			tuiButton
-			type="button"
-			[appearance]="activeSavedPresetId() === saved.id ? 'primary' : 'flat'"
-			class="preset-button"
-			role="radio"
-			[attr.aria-checked]="activeSavedPresetId() === saved.id"
-			(click)="applySavedPreset(saved)"
-		>
-			{{ saved.name }}
-		</button>
-	}
-</div>
+<app-settings-block title="Тема">
+	<app-settings-preset-row role="radiogroup" aria-label="Тема">
+		@for (preset of presets; track preset.id) {
+			<button
+				tuiButton
+				type="button"
+				[appearance]="themePreset() === preset.id ? 'primary' : 'flat'"
+				class="preset-button"
+				role="radio"
+				[attr.aria-checked]="themePreset() === preset.id"
+				(click)="selectPreset(preset)"
+			>
+				{{ preset.label }}
+			</button>
+		}
+		@if (customDesign()) {
+			<button
+				tuiButton
+				type="button"
+				[appearance]="isCustomTheme() ? 'primary' : 'flat'"
+				class="preset-button"
+				role="radio"
+				[attr.aria-checked]="isCustomTheme()"
+				(click)="selectPreset({ id: 'custom', label: 'Мой дизайн' })"
+			>
+				Мой дизайн
+			</button>
+		}
+		@for (saved of savedPresets(); track saved.id) {
+			<button
+				tuiButton
+				type="button"
+				[appearance]="activeSavedPresetId() === saved.id ? 'primary' : 'flat'"
+				class="preset-button"
+				role="radio"
+				[attr.aria-checked]="activeSavedPresetId() === saved.id"
+				(click)="applySavedPreset(saved)"
+			>
+				{{ saved.name }}
+			</button>
+		}
+	</app-settings-preset-row>
 
-<div class="preset-save">
-	<tui-textfield class="preset-name">
-		<label>Название пресета</label>
-		<input #presetNameInput tuiInput [value]="presetName()" (input)="setPresetName(presetNameInput.value)" placeholder="Моя тема" />
-	</tui-textfield>
-	<button tuiButton type="button" (click)="saveCurrentAsPreset()">Сохранить как пресет</button>
-	@if (activeSavedPresetId()) {
-		<button tuiButton type="button" appearance="flat" (click)="deleteActivePreset()">Удалить пресет</button>
-	}
-</div>
+	<app-settings-actions>
+		<tui-textfield class="preset-name">
+			<label>Название пресета</label>
+			<input #presetNameInput tuiInput [value]="presetName()" (input)="setPresetName(presetNameInput.value)" placeholder="Моя тема" />
+		</tui-textfield>
+		<button tuiButton type="button" (click)="saveCurrentAsPreset()">Сохранить как пресет</button>
+		@if (activeSavedPresetId()) {
+			<button tuiButton type="button" appearance="flat" (click)="deleteActivePreset()">Удалить пресет</button>
+		}
+	</app-settings-actions>
 
-@if (presetMessage(); as message) {
-	<p class="preset-message">{{ message }}</p>
-}
+	@if (presetMessage(); as message) {
+		<p class="preset-message">{{ message }}</p>
+	}
+</app-settings-block>

@@ -1,0 +1,44 @@
+.stats {
+	display: flex;
+	gap: 6px;
+	flex-direction: column;
+	min-width: 180px;
+	max-width: 320px;
+	padding: 8px 14px;
+	border-radius: 12px;
+	background: var(--inv-popup-bg, rgba(30, 20, 50, 0.85));
+	backdrop-filter: blur(8px);
+	color: var(--inv-text);
+	box-shadow: var(--inv-shadow, 0 4px 24px rgba(0, 0, 0, 0.4));
+}
+
+.stats-title {
+	font-weight: 700;
+	font-size: 12px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	opacity: 0.8;
+}
+
+.stats-row {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.stats-item {
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.is-completed {
+	color: #7dffa0;
+}
+
+.is-reroll {
+	color: #ffd27d;
+}
+
+.is-skip {
+	color: #ffb3b3;
+}

@@ -33,8 +33,10 @@ export interface LocalSourceConfig {
 export interface SoloSourceConfig {
 	spreadsheetId: string;
 	gid: string;
-	/** Ключ RAWG API для обложек/скриншотов в детальной странице игры. */
-	rawgApiKey: string;
+	/** Платформы, показываемые в соло-хотбаре (порядок = порядок слотов). */
+	platforms: string[];
+	/** Дополнительные (свои) платформы стримера. */
+	customPlatforms: string[];
 }
 
 export interface SourceConfigs {
@@ -121,6 +123,50 @@ export type HotbarSlot =
 		itemName: string;
 	};
 
+/** Идентификаторы самостоятельных виджетов оверлея (для OBS и настройки видимости). */
+export type WidgetId = 'inventory' | 'gameInfo' | 'gameTitle' | 'stats' | 'timer' | 'profile';
+
+export const WIDGET_IDS: readonly WidgetId[] = [
+	'inventory',
+	'gameInfo',
+	'gameTitle',
+	'stats',
+	'timer',
+	'profile',
+];
+
+const WIDGET_ID_SET: ReadonlySet<string> = new Set<string>(WIDGET_IDS);
+
+/** Проверяет строку на известный id виджета (для URL `#/widget/<id>`). */
+export function isWidgetId(value: string): value is WidgetId {
+	return WIDGET_ID_SET.has(value);
+}
+
+/** Видимость виджетов оверлея. */
+export interface OverlayWidgets {
+	/** Инвентарь/хотбар (и соло-хотбар). */
+	inventory: boolean;
+	/** Информация об игре (обложка, описание). */
+	gameInfo: boolean;
+	/** Название текущей игры (бегущая строка при длинном названии). */
+	gameTitle: boolean;
+	/** Статистика по играм (пройдено/рероллы/пропуски). */
+	stats: boolean;
+	/** Таймер. */
+	timer: boolean;
+	/** Профиль (ник + валюты). */
+	profile: boolean;
+}
+
+export const DEFAULT_OVERLAY_WIDGETS: OverlayWidgets = {
+	inventory: true,
+	gameInfo: true,
+	gameTitle: true,
+	stats: true,
+	timer: true,
+	profile: true,
+};
+
 /** Настройки оверлея инвентаря. */
 export interface OverlaySettings {
 	/** Слотов в одной полосе. */
@@ -157,6 +203,10 @@ export interface OverlaySettings {
 	 * с иконкой и количеством; остальные ячейки сетки остаются пустыми.
 	 */
 	hotbarSlots: (HotbarSlot | null)[];
+	/** Видимость самостоятельных виджетов оверлея. */
+	widgets: OverlayWidgets;
+	/** Порядок виджетов на баре (drag&drop); дефолт — WIDGET_IDS. */
+	widgetOrder: WidgetId[];
 }
 
 export interface AppSettings {
@@ -217,7 +267,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
 		solo: {
 			spreadsheetId: '',
 			gid: '',
-			rawgApiKey: '',
+			platforms: [],
+			customPlatforms: [],
 		},
 	},
 	timer: {
@@ -247,6 +298,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
 		pipEnabled: true,
 		hotbarOrder: DEFAULT_HOTBAR_ORDER,
 		hotbarSlots: [],
+		widgets: { ...DEFAULT_OVERLAY_WIDGETS },
+		widgetOrder: [...WIDGET_IDS],
 	},
 	themePreset: 'rgg-retro',
 	customDesign: null,

@@ -1,0 +1,16 @@
+.settings-status {
+	margin: 0;
+	font-size: 13px;
+}
+
+.settings-status--ok {
+	color: #7cd992;
+}
+
+.settings-status--error {
+	color: #ff7d7d;
+}
+
+.settings-status--warn {
+	color: #ffd57d;
+}

@@ -1,0 +1,27 @@
+<div class="widgets-settings">
+	@for (option of options(); track option.key) {
+		<div class="widget-row">
+			<app-settings-switch
+				[label]="option.label"
+				[hint]="option.hint"
+				[checked]="widgets()[option.key]"
+				(checkedChange)="onToggle(option.key, $event)"
+			/>
+			@if (widgets()[option.key]) {
+				<div class="widget-url">
+					<code class="widget-url-code">{{ option.url }}</code>
+					<button
+						tuiButton
+						type="button"
+						appearance="flat"
+						size="xs"
+						class="widget-url-copy"
+						(click)="copyUrl(option.key, option.url)"
+					>
+						{{ copiedKey() === option.key ? 'Скопировано' : 'Копировать' }}
+					</button>
+				</div>
+			}
+		</div>
+	}
+</div>

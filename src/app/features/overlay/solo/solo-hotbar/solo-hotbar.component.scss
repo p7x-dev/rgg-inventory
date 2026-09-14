@@ -1,9 +1,14 @@
 .solo-bar {
+	display: flex;
+	gap: var(--inv-slot-gap);
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.solo-row {
 	display: grid;
 	gap: var(--inv-slot-gap);
-	grid-template-columns: repeat(var(--inv-cols, 11), minmax(0, var(--inv-slot-size)));
-	align-items: center;
-	justify-content: flex-start;
+	grid-template-columns: repeat(var(--inv-cols, 10), var(--inv-slot-size));
 }
 
 .solo-slot {

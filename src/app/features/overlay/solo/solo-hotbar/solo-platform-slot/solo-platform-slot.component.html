@@ -5,19 +5,21 @@
 	[title]="tooltip()"
 	(click)="onClick()"
 >
-	<span class="slot-head">
-		@if (iconSrc(); as icon) {
-			<img class="slot-icon" [src]="icon" alt="" />
-		} @else {
-			<span class="slot-platform">{{ shortName() }}</span>
-		}
-		@if (currentGame(); as game) {
-			<span class="slot-game" title="{{ game }}">{{ game }}</span>
-		}
-	</span>
-	<span class="slot-stats">
-		<span class="slot-stat slot-stat--completed">{{ stats().completed }}</span>
-		<span class="slot-stat slot-stat--skip">{{ stats().skip }}</span>
-		<span class="slot-stat slot-stat--reroll">{{ stats().reroll }}</span>
-	</span>
+	@if (iconSrc(); as icon) {
+		<img class="slot-icon" [src]="icon" alt="" draggable="false" />
+	}
+	<span class="slot-platform">{{ shortName() }}</span>
+	@if (completedCount() > 0) {
+		<span class="slot-count">×{{ completedCount() }}</span>
+	}
+	@if (removable()) {
+		<button
+			class="slot-remove"
+			type="button"
+			[attr.aria-label]="'Удалить платформу ' + label()"
+			(click)="onRemove($event)"
+		>
+			×
+		</button>
+	}
 </button>

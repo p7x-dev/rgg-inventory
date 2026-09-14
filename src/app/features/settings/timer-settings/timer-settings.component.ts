@@ -3,6 +3,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { SettingsStore } from '@core/stores/settings.store';
 import { formatElapsed, TimerStore } from '@core/stores/timer.store';
 import { hmsToMs } from '@core/timer/timer-format';
+import { clamp, parseNumericInput } from '@core/utils/number.util';
+import { SettingsActionsComponent } from '@shared/ui/settings-actions/settings-actions.component';
+import { SettingsBlockComponent } from '@shared/ui/settings-block/settings-block.component';
+import { SettingsHintComponent } from '@shared/ui/settings-hint/settings-hint.component';
+import { SettingsPanelComponent } from '@shared/ui/settings-panel/settings-panel.component';
+import { SettingsPresetRowComponent } from '@shared/ui/settings-preset-row/settings-preset-row.component';
+import { SettingsStatusComponent } from '@shared/ui/settings-status/settings-status.component';
 import { SettingsSwitchComponent } from '@shared/ui/settings-switch/settings-switch.component';
 import { TuiButton, TuiInput, TuiTextfield } from '@taiga-ui/core';
 
@@ -27,7 +34,18 @@ function partsEqual(a: TimerDisplayParts, b: TimerDisplayParts): boolean {
 
 @Component({
 	selector: 'app-timer-settings',
-	imports: [TuiButton, TuiInput, TuiTextfield, SettingsSwitchComponent],
+	imports: [
+		TuiButton,
+		TuiInput,
+		TuiTextfield,
+		SettingsSwitchComponent,
+		SettingsPanelComponent,
+		SettingsBlockComponent,
+		SettingsHintComponent,
+		SettingsActionsComponent,
+		SettingsPresetRowComponent,
+		SettingsStatusComponent,
+	],
 	templateUrl: './timer-settings.component.html',
 	styleUrl: './timer-settings.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -113,9 +131,9 @@ export class TimerSettingsComponent {
 	protected setCountdownPart(key: keyof TimerCountdown, value: number): void {
 		const clampPart =
 			key === 'hours'
-				? (value: number): number => Math.min(999, Math.max(0, Math.floor(value)))
-				: (value: number): number => Math.min(59, Math.max(0, Math.floor(value)));
-		const clamped = clampPart(value);
+				? (value: number): number => clamp(value, 0, 999)
+				: (value: number): number => clamp(value, 0, 59);
+		const clamped = clampPart(Math.floor(value));
 		const next = { ...this.countdown(), [key]: clamped };
 		this.settingsStore.updateWith((current) => ({
 			...current,
@@ -131,12 +149,7 @@ export class TimerSettingsComponent {
 	}
 
 	protected parseNumeric(event: Event): number {
-		const input = event.target;
-		if (!(input instanceof HTMLInputElement)) {
-			return 0;
-		}
-		const parsed = Number.parseInt(input.value, 10);
-		return Number.isFinite(parsed) ? parsed : 0;
+		return parseNumericInput(event);
 	}
 
 	protected toggle(): void {

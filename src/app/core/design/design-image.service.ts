@@ -8,6 +8,7 @@ import {
 	readableTextColor,
 	rgbToHex,
 } from '@core/design/image-analysis';
+import { fileToDataUrl } from '@core/utils/file.util';
 
 const MAX_DIMENSION = 1024;
 const DEFAULT_FONT = '"Rubik", "Segoe UI", sans-serif';
@@ -59,7 +60,7 @@ export class DesignImageService {
 
 	/** Читает картинку, находит сетку слотов и режет текстуры. */
 	async analyzeFile(file: File): Promise<DesignDerivedTheme> {
-		const dataUrl = await this.fileToDataUrl(file);
+		const dataUrl = await fileToDataUrl(file);
 		const image = await this.loadImage(dataUrl);
 		const { width, height } = this.scaledSize(image.width, image.height);
 
@@ -117,15 +118,6 @@ export class DesignImageService {
 		};
 
 		return { layout, tokens: deriveDesignTokens(layout) };
-	}
-
-	private fileToDataUrl(file: File): Promise<string> {
-		return new Promise((resolve, reject) => {
-			const reader = new FileReader();
-			reader.onload = () => resolve(String(reader.result));
-			reader.onerror = () => reject(new Error('Не удалось прочитать файл'));
-			reader.readAsDataURL(file);
-		});
 	}
 
 	private loadImage(src: string): Promise<HTMLImageElement> {

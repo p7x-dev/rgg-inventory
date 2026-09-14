@@ -1,0 +1,10 @@
+<div class="stats">
+	@if (title(); as text) {
+		<span class="stats-title">{{ text }}</span>
+	}
+	<div class="stats-row">
+		<span class="stats-item is-completed">Пройдено: {{ stats().completed }}</span>
+		<span class="stats-item is-reroll">Реролльнуто: {{ stats().reroll }}</span>
+		<span class="stats-item is-skip">Скипнуто: {{ stats().skip }}</span>
+	</div>
+</div>

@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { DownloadNoticeComponent } from '@app/features/download-notice/download-notice.component';
 import { OverlayBarComponent } from '@app/features/overlay/overlay-bar/overlay-bar.component';
 import { OverlayPageComponent } from '@app/features/overlay/overlay-page/overlay-page.component';
+import { WidgetsPageComponent } from '@app/features/overlay/widgets/widgets-page/widgets-page.component';
 import { TutorialComponent } from '@app/features/tutorial/tutorial.component';
 import { AppShellService } from '@core/services/app-shell.service';
 import { ThemeHostDirective } from '@shared/ui/theme-host/theme-host.directive';
@@ -14,6 +15,7 @@ import { TuiRoot } from '@taiga-ui/core';
 		ThemeHostDirective,
 		OverlayBarComponent,
 		OverlayPageComponent,
+		WidgetsPageComponent,
 		TutorialComponent,
 		DownloadNoticeComponent,
 	],

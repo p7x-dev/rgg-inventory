@@ -1,0 +1,45 @@
+<div class="game-info">
+	@if (current(); as game) {
+		<header class="game-info-header">
+			<span class="game-info-platform">{{ category()?.platform }}</span>
+			<span class="game-info-name">{{ game.game }}</span>
+		</header>
+
+		@if (gameInfo(); as info) {
+			@if (info.loading) {
+				<p class="game-info-status">Ищу информацию…</p>
+			} @else if (info.error) {
+				<p class="game-info-status is-error">{{ info.error }}</p>
+			} @else if (info.wiki; as wiki) {
+				@if (wiki.thumbnail) {
+					<img class="game-info-cover" [src]="wiki.thumbnail" alt="Обложка {{ wiki.title }}" loading="lazy" draggable="false" />
+				}
+				@if (wiki.extract) {
+					<p class="game-info-description">{{ wiki.extract }}</p>
+				}
+				<a
+					tuiLink
+					class="game-info-link"
+					[href]="wiki.pageUrl"
+					target="_blank"
+					rel="noopener"
+				>
+					{{ wiki.title }} — читать на Википедии
+				</a>
+			} @else if (info.detail; as detail) {
+				@if (detail.background_image) {
+					<img class="game-info-cover" [src]="detail.background_image" alt="Обложка {{ detail.name }}" loading="lazy" draggable="false" />
+				}
+				@if (detail.description) {
+					<p class="game-info-description">{{ detail.description }}</p>
+				}
+			} @else {
+				<button tuiLink type="button" class="game-info-link" (click)="load()">
+					Загрузить информацию
+				</button>
+			}
+		}
+	} @else {
+		<p class="game-info-status">Игра не выбрана</p>
+	}
+</div>

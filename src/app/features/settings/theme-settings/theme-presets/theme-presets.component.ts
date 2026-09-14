@@ -3,6 +3,9 @@ import type { ThemePresetId } from '@core/models/theme.model';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { SettingsStore } from '@core/stores/settings.store';
 import { ThemeStore } from '@core/stores/theme.store';
+import { SettingsActionsComponent } from '@shared/ui/settings-actions/settings-actions.component';
+import { SettingsBlockComponent } from '@shared/ui/settings-block/settings-block.component';
+import { SettingsPresetRowComponent } from '@shared/ui/settings-preset-row/settings-preset-row.component';
 import { TuiButton, TuiTextfield } from '@taiga-ui/core';
 
 const PRESET_OPTIONS: readonly { id: ThemePresetId; label: string }[] = [
@@ -14,7 +17,13 @@ const PRESET_OPTIONS: readonly { id: ThemePresetId; label: string }[] = [
 /** Пресеты темы: встроенные + сохранённые пользователем (с именем). */
 @Component({
 	selector: 'app-theme-presets',
-	imports: [TuiButton, TuiTextfield],
+	imports: [
+		TuiButton,
+		TuiTextfield,
+		SettingsBlockComponent,
+		SettingsPresetRowComponent,
+		SettingsActionsComponent,
+	],
 	templateUrl: './theme-presets.component.html',
 	styleUrl: './theme-presets.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,

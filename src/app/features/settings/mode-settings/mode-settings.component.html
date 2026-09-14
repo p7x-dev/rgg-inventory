@@ -1,13 +1,10 @@
-<section class="section">
-	<h2 class="section-title">Режим</h2>
-	<p class="section-subtitle">Что показывает оверлей</p>
-
-	<p class="hint">
+<app-settings-panel title="Режим" subtitle="Что показывает оверлей">
+	<app-settings-hint>
 		RGG Land — инвентарь с монетками и слёзами. Solo RGG — платформы с играми
 		из твоей Google-таблицы. У каждого режима свой источник и свои настройки.
-	</p>
+	</app-settings-hint>
 
-	<div class="preset-row">
+	<app-settings-preset-row>
 		@for (option of options; track option.id) {
 			<button
 				tuiButton
@@ -18,5 +15,5 @@
 				{{ option.label }}
 			</button>
 		}
-	</div>
-</section>
+	</app-settings-preset-row>
+</app-settings-panel>

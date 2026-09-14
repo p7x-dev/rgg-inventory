@@ -1,0 +1,23 @@
+<div class="profile">
+	<span class="profile-title">{{ title() }}</span>
+	@if (showCurrencies()) {
+		<span class="profile-currencies">
+			<span class="profile-currency" title="Монетки">
+				@if (coinIcon(); as icon) {
+					<img class="profile-icon profile-icon-custom" [src]="icon" alt="Монетки" draggable="false" />
+				} @else {
+					<tui-icon icon="@tui.coins" class="profile-icon" />
+				}
+				{{ coins() }}
+			</span>
+			<span class="profile-currency profile-currency-tears" title="Слёзы">
+				@if (tearIcon(); as icon) {
+					<img class="profile-icon profile-icon-custom" [src]="icon" alt="Слёзы" draggable="false" />
+				} @else {
+					<tui-icon icon="@tui.droplet" class="profile-icon" />
+				}
+				{{ tears() }}
+			</span>
+		</span>
+	}
+</div>

@@ -1,0 +1,36 @@
+<div class="widget-host">
+	@switch (widget()) {
+		@case ('inventory') {
+			@if (soloMode()) {
+				<app-solo-hotbar />
+			} @else {
+				<app-hotbar />
+			}
+		}
+		@case ('gameTitle') {
+			<app-game-title-widget
+				[platform]="category()?.platform ?? null"
+				[game]="category()?.current?.game ?? '—'"
+			/>
+		}
+		@case ('gameInfo') {
+			<app-game-info-widget [category]="category()" />
+		}
+		@case ('stats') {
+			<app-stats-widget [stats]="totalStats()" title="Статистика" />
+		}
+		@case ('timer') {
+			<app-overlay-timer />
+		}
+		@case ('profile') {
+			<app-profile-widget
+				[title]="profileTitle()"
+				[coins]="coins()"
+				[tears]="tears()"
+				[showCurrencies]="showCurrencies()"
+				[coinIcon]="coinIcon()"
+				[tearIcon]="tearIcon()"
+			/>
+		}
+	}
+</div>

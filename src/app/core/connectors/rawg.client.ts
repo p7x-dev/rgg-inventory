@@ -1,15 +1,14 @@
 import type {
 	RawgGameDetail,
 	RawgGameSummary,
-	RawgScreenshot,
 	RawgSearchResult,
 } from '@core/models/rawg.model';
 import { httpGetJson } from '@core/connectors/http.util';
 
 /**
- * Клиент RAWG API (rawg.io) — обложки, скриншоты и описание игр.
- * Требует API-ключ (бесплатный на rawg.io/apidocs), передаётся в query.
- * CORS у RAWG открыт, поэтому запросы идут напрямую из браузера.
+ * Клиент RAWG API (rawg.io) — обложки и описания игр (запасной источник
+ * после Википедии). Требует API-ключ (бесплатный на rawg.io/apidocs),
+ * передаётся в query. CORS у RAWG открыт, запросы идут напрямую из браузера.
  */
 export class RawgClientImpl {
 	private static readonly BASE_URL = 'https://api.rawg.io/api';
@@ -34,14 +33,6 @@ export class RawgClientImpl {
 		);
 		return parseGameDetail(payload);
 	}
-
-	/** Скриншоты игры (пустой массив — их нет). */
-	async screenshots(id: number): Promise<RawgScreenshot[]> {
-		const payload: unknown = await httpGetJson(
-			`${RawgClientImpl.BASE_URL}/games/${id}/screenshots?key=${encodeURIComponent(this.apiKey)}`,
-		);
-		return parseScreenshots(payload);
-	}
 }
 
 interface RawgGameSearchItem {
@@ -56,10 +47,6 @@ interface RawgGameSearchItem {
 	description_raw?: string;
 	developers?: Array<{ name?: string }>;
 	publishers?: Array<{ name?: string }>;
-}
-
-interface RawgScreenshotItem {
-	image?: string;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -124,15 +111,4 @@ function parseGameDetail(payload: unknown): RawgGameDetail | null {
 		developers: nameList(payload.developers),
 		publishers: nameList(payload.publishers),
 	};
-}
-
-/** Разбирает ответ /games/{id}/screenshots. */
-function parseScreenshots(payload: unknown): RawgScreenshot[] {
-	if (!isObject(payload) || !Array.isArray(payload['results'])) {
-		return [];
-	}
-	return payload['results']
-		.filter((item): item is RawgScreenshotItem => isObject(item))
-		.map((item) => ({ image: textOrNull(item.image) ?? '' }))
-		.filter((screenshot) => screenshot.image.length > 0);
 }

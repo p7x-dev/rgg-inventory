@@ -1,0 +1,35 @@
+<header class="popover-header">
+	<h2 class="popover-title">{{ shortName() }} — {{ platform() }}</h2>
+	<button tuiButton type="button" appearance="flat" iconStart="@tui.x" class="popover-close" aria-label="Закрыть" (click)="onClose()"></button>
+</header>
+
+<div class="popover-body">
+	@if (rows().length === 0) {
+		<p class="empty">На этой платформе пока нет записей</p>
+	} @else {
+		<ul class="games">
+			@for (row of rows(); track row.game) {
+				<li
+					class="game"
+					[class.game--current]="row.game === currentGame()"
+					(click)="onSelect(row)"
+				>
+					@if (row.game === currentGame()) {
+						<span class="game-badge">сейчас</span>
+					}
+					<span class="game-name">{{ row.game }}</span>
+					<span class="game-action" [class.is-completed]="row.action === 'completed'" [class.is-skip]="row.action === 'skip'" [class.is-reroll]="row.action === 'reroll'">{{ actionLabel[row.action] }}</span>
+					@if (row.reason) {
+						<span class="game-reason">{{ row.reason }}</span>
+					}
+				</li>
+			}
+		</ul>
+	}
+</div>
+
+<footer class="popover-footer">
+	<span class="foot-stat">Пройдено: {{ stats().completed }}</span>
+	<span class="foot-stat">Пропущено: {{ stats().skip }}</span>
+	<span class="foot-stat">Реролльнуто: {{ stats().reroll }}</span>
+</footer>

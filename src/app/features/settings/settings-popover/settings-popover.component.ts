@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, output } from '@angular/core';
+import type { AppMode } from '@core/models/settings.model';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, output, signal } from '@angular/core';
 import { AppSettingsComponent } from '@app/features/settings/app-settings/app-settings.component';
 import { IconSettingsComponent } from '@app/features/settings/icon-settings/icon-settings.component';
 import { ModeSettingsComponent } from '@app/features/settings/mode-settings/mode-settings.component';
@@ -7,6 +8,8 @@ import { SourceSettingsComponent } from '@app/features/settings/source-settings/
 import { ThemeSettingsComponent } from '@app/features/settings/theme-settings/theme-settings.component';
 import { TimerSettingsComponent } from '@app/features/settings/timer-settings/timer-settings.component';
 import { SettingsNavigationService } from '@core/services/settings-navigation.service';
+import { SettingsStore } from '@core/stores/settings.store';
+import { TuiButton } from '@taiga-ui/core';
 import { SettingsHeaderComponent } from './settings-header/settings-header.component';
 import { SettingsSectionComponent } from './settings-section/settings-section.component';
 
@@ -39,6 +42,7 @@ function findScrollContainer(el: Element): HTMLElement {
 		SourceSettingsComponent,
 		ThemeSettingsComponent,
 		TimerSettingsComponent,
+		TuiButton,
 	],
 	templateUrl: './settings-popover.component.html',
 	styleUrl: './settings-popover.component.scss',
@@ -46,8 +50,14 @@ function findScrollContainer(el: Element): HTMLElement {
 })
 export class SettingsPopoverComponent {
 	private readonly settingsNavigation = inject(SettingsNavigationService);
+	private readonly settingsStore = inject(SettingsStore);
 
 	readonly close = output<void>();
+
+	/** «Полные» настройки: все секции; иначе только базовые. */
+	protected readonly fullMode = signal(false);
+
+	protected readonly mode = computed(() => this.settingsStore.mode());
 
 	protected readonly appSectionId = APP_SETTINGS_SECTION_ID;
 
@@ -81,5 +91,11 @@ export class SettingsPopoverComponent {
 
 	protected onClose(): void {
 		this.close.emit();
+	}
+
+	protected setMode(mode: AppMode): void {
+		if (mode !== this.settingsStore.mode()) {
+			this.settingsStore.setMode(mode);
+		}
 	}
 }

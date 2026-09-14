@@ -1,0 +1,37 @@
+.widget-drag {
+	display: flex;
+	gap: 8px;
+	flex-direction: column;
+}
+
+.widget-drag-list {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.widget-drag-item {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+	padding: 4px 8px;
+	border: 1px solid var(--tui-background-neutral-2, rgba(255, 255, 255, 0.12));
+	border-radius: 8px;
+	background: var(--tui-background-neutral-1, rgba(255, 255, 255, 0.05));
+	cursor: grab;
+
+	&:active {
+		cursor: grabbing;
+	}
+}
+
+.widget-drag-handle {
+	opacity: 0.6;
+}
+
+.widget-drag-label {
+	font-size: 12px;
+}

@@ -23,37 +23,36 @@
 		box-shadow: 0 0 0 1px var(--inv-accent);
 		outline: none;
 	}
-}
 
-.slot-head {
-	display: flex;
-	align-items: center;
-	min-width: 0;
-	width: 100%;
-	gap: 4px;
-	justify-content: center;
+	&.is-active {
+		border-color: var(--inv-accent);
+		background-color: var(--inv-slot-hover-bg);
+		box-shadow: 0 0 0 1px var(--inv-accent), 0 0 12px rgba(0, 0, 0, 0.25);
+	}
 }
 
 .slot-icon {
-	width: 26px;
-	height: 26px;
+	width: 28px;
+	height: 28px;
 	flex-shrink: 0;
-	image-rendering: pixelated;
 	object-fit: contain;
 	opacity: 0.95;
 }
 
 .slot-platform {
-	flex-shrink: 0;
+	overflow: hidden;
+	max-width: 100%;
 	font-weight: 800;
 	font-size: 0.72em;
-	line-height: 1;
-	opacity: 0.95;
+	line-height: 1.1;
+	text-align: center;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .slot-game {
 	overflow: hidden;
-	flex: 1;
+	max-width: 100%;
 	font-size: 0.62em;
 	opacity: 0.75;
 	text-align: center;
@@ -61,33 +60,38 @@
 	white-space: nowrap;
 }
 
-.slot-stats {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 3px;
-	margin-top: 3px;
-}
-
-.slot-stat {
-	min-width: 9px;
-	padding: 0 2px;
-	border-radius: 4px;
+.slot-count {
+	position: absolute;
+	right: 2px;
+	bottom: 1px;
+	color: var(--inv-text);
 	font-weight: 800;
-	font-size: 0.68em;
-	line-height: 1.35;
-	text-align: center;
+	font-size: 0.62em;
+	line-height: 1;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.6);
 	user-select: none;
 }
 
-.slot-stat--completed {
-	color: #7dffa0;
-}
-
-.slot-stat--skip {
+.slot-remove {
+	position: absolute;
+	top: -6px;
+	right: -6px;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	padding: 0;
+	border: 1px solid var(--tui-border-normal, rgba(255, 255, 255, 0.2));
+	border-radius: 999px;
+	background: rgba(30, 20, 50, 0.95);
 	color: #ffb3b3;
-}
+	font-size: 13px;
+	line-height: 1;
+	cursor: pointer;
 
-.slot-stat--reroll {
-	color: #ffd27d;
+	&:hover {
+		border-color: #ffb3b3;
+	}
 }

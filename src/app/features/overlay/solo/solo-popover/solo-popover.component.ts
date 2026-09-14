@@ -1,15 +1,16 @@
-import type { SoloCategory, SoloPlatform, SoloRow } from '@core/models/solo.model';
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { SOLO_ACTION_LABEL, soloPlatformShortName } from '@core/models/solo.model';
-import { TuiButton } from '@taiga-ui/core';
+import type { SoloCategory, SoloRow } from '@core/models/solo.model';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { GameInfoStore, normalizeGameKey } from '@core/stores/game-info.store';
+import { SoloGameDetailsComponent } from './solo-game-details/solo-game-details.component';
+import { SoloGameListComponent } from './solo-game-list/solo-game-list.component';
 
 /**
- * Попап платформы Solo RGG: список игр с действием и причиной.
- * Клик по игре открывает детальный вид (статус, причина, описание).
+ * Попап платформы Solo RGG (умный): список игр → детальный вид.
+ * Управляет выбором игры и подгрузкой информации (Википедия + RAWG).
  */
 @Component({
 	selector: 'app-solo-popover',
-	imports: [TuiButton],
+	imports: [SoloGameDetailsComponent, SoloGameListComponent],
 	templateUrl: './solo-popover.component.html',
 	styleUrl: './solo-popover.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,9 +20,9 @@ export class SoloPopoverComponent {
 
 	readonly close = output<void>();
 
-	protected readonly platform = computed<SoloPlatform>(() => this.category().platform);
+	private readonly gameInfoStore = inject(GameInfoStore);
 
-	protected readonly shortName = computed(() => soloPlatformShortName(this.platform()));
+	protected readonly platform = computed(() => this.category().platform);
 
 	protected readonly rows = computed<SoloRow[]>(() => this.category().rows);
 
@@ -29,15 +30,25 @@ export class SoloPopoverComponent {
 
 	protected readonly stats = computed(() => this.category().stats);
 
-	protected readonly actionLabel = SOLO_ACTION_LABEL;
-
 	/** Игра, открытая в детальном виде (null — список). */
 	protected readonly selectedRow = signal<SoloRow | null>(null);
 
-	protected readonly selectedIsCurrent = computed(() => this.selectedRow()?.game === this.currentGame());
+	protected readonly selectedIsCurrent = computed(
+		() => this.selectedRow()?.game === this.currentGame(),
+	);
+
+	/** Информация об игре (по имени выбранной игры). */
+	protected readonly gameInfo = computed(() => {
+		const row = this.selectedRow();
+		if (!row) {
+			return null;
+		}
+		return this.gameInfoStore.byName()[normalizeGameKey(row.game)] ?? null;
+	});
 
 	protected onSelectRow(row: SoloRow): void {
 		this.selectedRow.set(row);
+		void this.gameInfoStore.load(row.game);
 	}
 
 	protected onBack(): void {

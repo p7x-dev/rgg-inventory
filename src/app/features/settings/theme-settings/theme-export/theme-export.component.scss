@@ -1,44 +1,10 @@
-.export-block,
-.import-block {
-	margin-top: 20px;
-}
-
-.export-title,
-.import-title {
-	margin: 0 0 6px;
-	font-weight: 600;
-	font-size: 15px;
-}
-
-.export-hint,
-.import-hint {
-	margin: 0 0 12px;
-	font-size: 13px;
-	line-height: 1.45;
-	opacity: 0.75;
-}
-
-.export-row {
-	display: flex;
-	gap: 8px;
-	align-items: flex-end;
-	margin-bottom: 10px;
-}
-
 .export-nick {
 	flex: 1;
-	min-width: 0;
-}
-
-.export-formats {
-	display: flex;
-	gap: 6px;
-	flex-wrap: wrap;
-	margin-bottom: 8px;
+	min-width: 200px;
 }
 
 .export-filenames {
-	margin-bottom: 10px;
+	margin: 0;
 	font-size: 13px;
 	opacity: 0.8;
 
@@ -47,24 +13,6 @@
 	}
 }
 
-.export-actions {
-	display: flex;
-	gap: 8px;
-	flex-wrap: wrap;
-}
-
 .import-upload {
 	display: inline-flex;
-}
-
-.design-error {
-	margin: 10px 0 0;
-	color: var(--tui-status-negative, #d85b5b);
-	font-size: 13px;
-}
-
-.import-ok {
-	margin: 10px 0 0;
-	color: var(--tui-status-positive, #4caf50);
-	font-size: 13px;
 }

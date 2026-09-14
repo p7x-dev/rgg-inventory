@@ -3,12 +3,16 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { SettingsStore } from '@core/stores/settings.store';
 import { ThemeStore } from '@core/stores/theme.store';
 import { fontFaceFromFile } from '@core/theme/font-face';
+import { dataUrlSize, fileToDataUrl, selectedFile } from '@core/utils/file.util';
+import { SettingsBlockComponent } from '@shared/ui/settings-block/settings-block.component';
+import { SettingsHintComponent } from '@shared/ui/settings-hint/settings-hint.component';
+import { SettingsStatusComponent } from '@shared/ui/settings-status/settings-status.component';
 import { TuiButton } from '@taiga-ui/core';
 
 /** Загрузка кастомных ассетов: иконки монеток/слёз и пользовательский шрифт. */
 @Component({
 	selector: 'app-theme-assets',
-	imports: [TuiButton],
+	imports: [TuiButton, SettingsBlockComponent, SettingsHintComponent, SettingsStatusComponent],
 	templateUrl: './theme-assets.component.html',
 	styleUrl: './theme-assets.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,22 +36,17 @@ export class ThemeAssetsComponent {
 	}
 
 	protected async onFontSelected(event: Event): Promise<void> {
-		const input = event.target;
-		if (!(input instanceof HTMLInputElement)) {
-			return;
-		}
-		const file = input.files?.[0];
-		input.value = '';
+		const file = selectedFile(event);
 		if (!file) {
 			return;
 		}
 		this.error.set(null);
 		this.message.set(null);
 		try {
-			const dataUrl = await this.fileToDataUrl(file);
+			const dataUrl = await fileToDataUrl(file);
 			const fontFace = fontFaceFromFile(file.name, file.type, dataUrl);
 			this.applyTokens({ fontFace });
-			this.message.set(`Шрифт «${fontFace.family}» применён (${this.friendlySize(dataUrl)})`);
+			this.message.set(`Шрифт «${fontFace.family}» применён (${dataUrlSize(dataUrl)})`);
 		} catch (err) {
 			this.error.set(err instanceof Error ? err.message : 'Не удалось загрузить шрифт');
 		}
@@ -58,19 +57,14 @@ export class ThemeAssetsComponent {
 		key: keyof Pick<ThemeTokens, 'coinIcon' | 'tearIcon'>,
 		label: string,
 	): Promise<void> {
-		const input = event.target;
-		if (!(input instanceof HTMLInputElement)) {
-			return;
-		}
-		const file = input.files?.[0];
-		input.value = '';
+		const file = selectedFile(event);
 		if (!file) {
 			return;
 		}
 		this.error.set(null);
 		this.message.set(null);
 		try {
-			const dataUrl = await this.fileToDataUrl(file);
+			const dataUrl = await fileToDataUrl(file);
 			this.applyTokens({ [key]: dataUrl });
 			this.message.set(`${label} заменена`);
 		} catch (err) {
@@ -97,22 +91,5 @@ export class ThemeAssetsComponent {
 	protected resetFont(): void {
 		this.applyTokens({ fontFace: null });
 		this.message.set('Шрифт сброшен на стандартные');
-	}
-
-	private fileToDataUrl(file: File): Promise<string> {
-		return new Promise((resolve, reject) => {
-			const reader = new FileReader();
-			reader.onload = () => resolve(String(reader.result));
-			reader.onerror = () => reject(new Error('Не удалось прочитать файл'));
-			reader.readAsDataURL(file);
-		});
-	}
-
-	private friendlySize(dataUrl: string): string {
-		const bytes = Math.round((dataUrl.length / 4) * 3);
-		if (bytes > 1024 * 1024) {
-			return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
-		}
-		return `${Math.round(bytes / 1024)} КБ`;
 	}
 }

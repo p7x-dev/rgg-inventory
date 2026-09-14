@@ -5,6 +5,12 @@ import { buildThemeArchive, parseThemeArchive, themeArchiveName } from '@core/ar
 import { SettingsStore } from '@core/stores/settings.store';
 import { ThemeStore } from '@core/stores/theme.store';
 import { generateTheme, themeFileName } from '@core/theme/theme-export';
+import { selectedFile } from '@core/utils/file.util';
+import { SettingsActionsComponent } from '@shared/ui/settings-actions/settings-actions.component';
+import { SettingsBlockComponent } from '@shared/ui/settings-block/settings-block.component';
+import { SettingsHintComponent } from '@shared/ui/settings-hint/settings-hint.component';
+import { SettingsPresetRowComponent } from '@shared/ui/settings-preset-row/settings-preset-row.component';
+import { SettingsStatusComponent } from '@shared/ui/settings-status/settings-status.component';
 import { TuiButton, TuiTextfield } from '@taiga-ui/core';
 
 const EXPORT_OPTIONS: readonly { id: ThemeExportFormat; label: string }[] = [
@@ -18,7 +24,15 @@ const EXPORT_OPTIONS: readonly { id: ThemeExportFormat; label: string }[] = [
 /** Экспорт темы (css/scss/… + zip) и импорт (css/…/zip). */
 @Component({
 	selector: 'app-theme-export',
-	imports: [TuiButton, TuiTextfield],
+	imports: [
+		TuiButton,
+		TuiTextfield,
+		SettingsBlockComponent,
+		SettingsHintComponent,
+		SettingsActionsComponent,
+		SettingsPresetRowComponent,
+		SettingsStatusComponent,
+	],
 	templateUrl: './theme-export.component.html',
 	styleUrl: './theme-export.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -84,12 +98,7 @@ export class ThemeExportComponent {
 	}
 
 	protected onThemeFileSelected(event: Event): void {
-		const input = event.target;
-		if (!(input instanceof HTMLInputElement)) {
-			return;
-		}
-		const file = input.files?.[0];
-		input.value = '';
+		const file = selectedFile(event);
 		if (!file) {
 			return;
 		}

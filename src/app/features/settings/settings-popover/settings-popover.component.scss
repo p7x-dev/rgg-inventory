@@ -11,6 +11,12 @@
 	box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
 }
 
+.popover-tabs {
+	display: flex;
+	gap: 6px;
+	padding: 8px 18px 0;
+}
+
 .popover-content {
 	display: flex;
 	gap: 2px;

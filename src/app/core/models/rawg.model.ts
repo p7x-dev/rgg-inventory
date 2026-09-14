@@ -1,6 +1,6 @@
 /**
  * Модели данных RAWG API (rawg.io) для детальной страницы игры.
- * Эндпоинты: /api/games?search=..., /api/games/{id}, /api/games/{id}/screenshots.
+ * Эндпоинты: /api/games?search=..., /api/games/{id}.
  */
 
 /** Игра из результатов поиска (краткая карточка). */
@@ -29,11 +29,6 @@ export interface RawgGameDetail {
 	genres: string[];
 	developers: string[];
 	publishers: string[];
-}
-
-/** Скриншот игры. */
-export interface RawgScreenshot {
-	image: string;
 }
 
 /** Поиск игры: результат со всеми найденными вариантами. */

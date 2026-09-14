@@ -4,15 +4,17 @@
 
 @if (!barHidden()) {
 	<div class="bar" [style.background]="overlayBackground()" [style.--inv-board-bg]="overlayBackground()">
-		<app-overlay-header
-			class="bar-profile"
-			[title]="playerName()"
-			[coins]="coins()"
-			[tears]="tears()"
-			[showCurrencies]="showCurrencies() && !soloMode()"
-			[coinIcon]="soloMode() ? null : coinIcon()"
-			[tearIcon]="soloMode() ? null : tearIcon()"
-		/>
+		@if (!soloMode()) {
+			<app-overlay-header
+				class="bar-profile"
+				[title]="playerName()"
+				[coins]="coins()"
+				[tears]="tears()"
+				[showCurrencies]="showCurrencies() && !soloMode()"
+				[coinIcon]="soloMode() ? null : coinIcon()"
+				[tearIcon]="soloMode() ? null : tearIcon()"
+			/>
+		}
 
 		<div class="bar-inventory-block">
 			@if (soloMode()) {

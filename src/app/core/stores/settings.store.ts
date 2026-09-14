@@ -4,10 +4,12 @@ import type {
 	AppSettings,
 	HotbarBlockId,
 	HotbarSlot,
+	OverlayWidgets,
 	SavedThemePreset,
 	SettingsEnvelope,
 	TimerCountdown,
 	TimerMode,
+	WidgetId,
 } from '@core/models/settings.model';
 import type { DesignLayout, ThemeTokens } from '@core/models/theme.model';
 import { computed } from '@angular/core';
@@ -16,11 +18,14 @@ import {
 	DEFAULT_APP_MODE,
 	DEFAULT_COUNTDOWN,
 	DEFAULT_HOTBAR_ORDER,
+	DEFAULT_OVERLAY_WIDGETS,
 	DEFAULT_SETTINGS,
 	DEFAULT_TIMER_DISPLAY,
 	DEFAULT_TIMER_MODE,
 	defaultSettingsEnvelope,
+	WIDGET_IDS,
 } from '@core/models/settings.model';
+import { SOLO_PLATFORMS } from '@core/models/solo.model';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 
 export const SETTINGS_STORAGE_KEY = 'rgg-inventory:settings';
@@ -102,6 +107,77 @@ export function readHotbarOrder(record: Record<string, unknown>, key: string): H
 		}
 	}
 	return list.length === valid.length ? list : [...DEFAULT_HOTBAR_ORDER];
+}
+
+/** Читает выбранные платформы соло-хотбара; незнакомые платформы отбрасываются. */
+export function readSoloPlatforms(value: unknown): string[] {
+	if (!Array.isArray(value)) {
+		return [];
+	}
+	const known = new Set(SOLO_PLATFORMS);
+	const list: string[] = [];
+	for (const item of value) {
+		if (typeof item === 'string' && known.has(item as (typeof SOLO_PLATFORMS)[number])) {
+			list.push(item);
+		}
+	}
+	return list;
+}
+
+/** Читает пользовательские (свои) платформы; непустые строки без дубликатов. */
+export function readCustomPlatforms(value: unknown): string[] {
+	if (!Array.isArray(value)) {
+		return [];
+	}
+	const list: string[] = [];
+	const seen = new Set<string>();
+	for (const item of value) {
+		if (typeof item !== 'string') {
+			continue;
+		}
+		const name = item.trim();
+		if (!name || seen.has(name)) {
+			continue;
+		}
+		seen.add(name);
+		list.push(name);
+	}
+	return list;
+}
+
+/** Читает видимость виджетов оверлея; неизвестные ключи — дефолт. */
+export function readOverlayWidgets(value: unknown): OverlayWidgets {
+	if (!isRecord(value)) {
+		return { ...DEFAULT_OVERLAY_WIDGETS };
+	}
+	const result = { ...DEFAULT_OVERLAY_WIDGETS };
+	for (const id of Object.keys(result) as WidgetId[]) {
+		const raw = value[id];
+		if (typeof raw === 'boolean') {
+			result[id] = raw;
+		}
+	}
+	return result;
+}
+
+/** Читает порядок виджетов; незнакомые id отбрасываются, недостающие дополняются. */
+export function readWidgetOrder(value: unknown): WidgetId[] {
+	if (!Array.isArray(value)) {
+		return [...WIDGET_IDS];
+	}
+	const known = new Set<WidgetId>(WIDGET_IDS);
+	const list: WidgetId[] = [];
+	for (const item of value) {
+		if (typeof item === 'string' && known.has(item as WidgetId)) {
+			list.push(item as WidgetId);
+		}
+	}
+	for (const id of WIDGET_IDS) {
+		if (!list.includes(id)) {
+			list.push(id);
+		}
+	}
+	return list;
 }
 
 /** Читает пользовательские слоты хотбара; невалидные записи отбрасываются. */
@@ -261,7 +337,8 @@ export function parseSettings(raw: string | null): AppSettings {
 				solo: {
 					spreadsheetId: readString(soloRaw, 'spreadsheetId', DEFAULT_SETTINGS.sources.solo.spreadsheetId),
 					gid: readString(soloRaw, 'gid', DEFAULT_SETTINGS.sources.solo.gid),
-					rawgApiKey: readString(soloRaw, 'rawgApiKey', DEFAULT_SETTINGS.sources.solo.rawgApiKey),
+					platforms: readSoloPlatforms(soloRaw['platforms']),
+					customPlatforms: readCustomPlatforms(soloRaw['customPlatforms']),
 				},
 			},
 			timer: {
@@ -314,6 +391,8 @@ export function parseSettings(raw: string | null): AppSettings {
 				pipEnabled: readBoolean(overlayRaw, 'pipEnabled', DEFAULT_SETTINGS.overlay.pipEnabled),
 				hotbarOrder: readHotbarOrder(overlayRaw, 'hotbarOrder'),
 				hotbarSlots: readHotbarSlots(overlayRaw, 'hotbarSlots'),
+				widgets: readOverlayWidgets(overlayRaw['widgets']),
+				widgetOrder: readWidgetOrder(overlayRaw['widgetOrder']),
 			},
 			themePreset: presets.includes(themePreset)
 				? (themePreset as AppSettings['themePreset'])
@@ -391,7 +470,8 @@ function parseProfileValue(value: unknown): AppSettings {
 			solo: {
 				spreadsheetId: readString(soloRaw, 'spreadsheetId', DEFAULT_SETTINGS.sources.solo.spreadsheetId),
 				gid: readString(soloRaw, 'gid', DEFAULT_SETTINGS.sources.solo.gid),
-				rawgApiKey: readString(soloRaw, 'rawgApiKey', DEFAULT_SETTINGS.sources.solo.rawgApiKey),
+				platforms: readSoloPlatforms(soloRaw['platforms']),
+				customPlatforms: readCustomPlatforms(soloRaw['customPlatforms']),
 			},
 		},
 		timer: {
@@ -444,6 +524,8 @@ function parseProfileValue(value: unknown): AppSettings {
 			pipEnabled: readBoolean(overlayRaw, 'pipEnabled', DEFAULT_SETTINGS.overlay.pipEnabled),
 			hotbarOrder: readHotbarOrder(overlayRaw, 'hotbarOrder'),
 			hotbarSlots: readHotbarSlots(overlayRaw, 'hotbarSlots'),
+			widgets: readOverlayWidgets(overlayRaw['widgets']),
+			widgetOrder: readWidgetOrder(overlayRaw['widgetOrder']),
 		},
 		themePreset: presets.includes(themePreset)
 			? (themePreset as AppSettings['themePreset'])

@@ -1,11 +1,11 @@
-<section class="section">
-	<h2 class="section-title">Приложение</h2>
-	<p class="section-subtitle">Десктопная версия для Windows, macOS и Linux — окно поверх игры</p>
-
-	<p class="hint">
+<app-settings-panel
+	title="Приложение"
+	subtitle="Десктопная версия для Windows, macOS и Linux — окно поверх игры"
+>
+	<app-settings-hint>
 		Версия {{ appVersion }}. Если выйдет новая сборка — она появится ниже вместе с кнопкой
 		«Скачать». Скачивай архив, распакуй и запусти приложение.
-	</p>
+	</app-settings-hint>
 
 	@if (os(); as osId) {
 		<p class="os">
@@ -32,7 +32,7 @@
 			</button>
 		}
 	} @else if (latestVersion() !== null) {
-		<p class="status status-warn">Сборки для {{ osLabel() }} пока нет — сборка появится позже.</p>
+		<app-settings-status kind="warn">Сборки для {{ osLabel() }} пока нет — сборка появится позже.</app-settings-status>
 	}
 
 	<button
@@ -48,10 +48,10 @@
 	</button>
 
 	@if (loading()) {
-		<p class="status">Проверяю…</p>
+		<app-settings-status>Проверяю…</app-settings-status>
 	}
 
 	@if (error() !== null) {
-		<p class="status status-error" role="alert">{{ error() }}</p>
+		<app-settings-status kind="error">{{ error() }}</app-settings-status>
 	}
-</section>
+</app-settings-panel>

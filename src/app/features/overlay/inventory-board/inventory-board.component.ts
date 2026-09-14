@@ -2,6 +2,7 @@ import type { SlotItem } from '@core/models/overlay.model';
 import type { DesignLayout } from '@core/models/theme.model';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { InventorySlotComponent } from '@app/features/overlay/inventory-slot/inventory-slot.component';
+import { range } from '@core/utils/number.util';
 
 /** Позиционированный слот в режиме «дизайн из картинки». */
 interface PositionedSlot {
@@ -86,8 +87,4 @@ export class InventoryBoardComponent {
 			this.slotSelect.emit(index);
 		}
 	}
-}
-
-function range(count: number): number[] {
-	return Array.from({ length: Math.max(0, count) }, (_, index) => index);
 }

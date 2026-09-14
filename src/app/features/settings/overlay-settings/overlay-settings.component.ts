@@ -1,14 +1,30 @@
-import type { OverlaySettings } from '@core/models/settings.model';
+import type { OverlaySettings, OverlayWidgets, WidgetId } from '@core/models/settings.model';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { WIDGET_IDS } from '@core/models/settings.model';
 import { SettingsStore } from '@core/stores/settings.store';
+import { SettingsBlockComponent } from '@shared/ui/settings-block/settings-block.component';
 import { SettingsColorComponent } from '@shared/ui/settings-color/settings-color.component';
+import { SettingsHintComponent } from '@shared/ui/settings-hint/settings-hint.component';
+import { SettingsPanelComponent } from '@shared/ui/settings-panel/settings-panel.component';
 import { SettingsSliderComponent } from '@shared/ui/settings-slider/settings-slider.component';
 import { SettingsSwitchComponent } from '@shared/ui/settings-switch/settings-switch.component';
 import { TuiButton } from '@taiga-ui/core';
+import { WidgetDragListComponent } from './widget-drag-list/widget-drag-list.component';
+import { WidgetsSettingsComponent } from './widgets-settings/widgets-settings.component';
 
 @Component({
 	selector: 'app-overlay-settings',
-	imports: [SettingsSwitchComponent, SettingsSliderComponent, SettingsColorComponent, TuiButton],
+	imports: [
+		SettingsSwitchComponent,
+		SettingsSliderComponent,
+		SettingsColorComponent,
+		SettingsPanelComponent,
+		SettingsBlockComponent,
+		SettingsHintComponent,
+		WidgetsSettingsComponent,
+		WidgetDragListComponent,
+		TuiButton,
+	],
 	templateUrl: './overlay-settings.component.html',
 	styleUrl: './overlay-settings.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,5 +76,17 @@ export class OverlaySettingsComponent {
 
 	protected setTutorialEnabled(value: boolean): void {
 		this.updateOverlay({ tutorialEnabled: value });
+	}
+
+	protected setWidgets(patch: Partial<OverlayWidgets>): void {
+		this.updateOverlay({ widgets: { ...this.overlay().widgets, ...patch } });
+	}
+
+	protected setWidgetOrder(order: WidgetId[]): void {
+		this.updateOverlay({ widgetOrder: order });
+	}
+
+	protected resetWidgetOrder(): void {
+		this.updateOverlay({ widgetOrder: [...WIDGET_IDS] });
 	}
 }

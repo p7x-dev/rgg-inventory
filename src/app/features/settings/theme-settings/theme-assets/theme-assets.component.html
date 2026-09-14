@@ -1,9 +1,8 @@
-<div class="assets-block">
-	<h3 class="assets-title">Свои иконки и шрифт</h3>
-	<p class="assets-hint">
+<app-settings-block title="Свои иконки и шрифт">
+	<app-settings-hint>
 		Загрузите собственные иконки монеток/слёз (PNG/WebP) и шрифт (TTF/OTF/WOFF/WOFF2) —
 		они встроятся в оверлей и в zip-архив темы.
-	</p>
+	</app-settings-hint>
 
 	<div class="assets-grid">
 		<label class="asset-cell">
@@ -47,9 +46,9 @@
 	</div>
 
 	@if (message(); as text) {
-		<p class="assets-ok">{{ text }}</p>
+		<app-settings-status kind="ok">{{ text }}</app-settings-status>
 	}
 	@if (error(); as text) {
-		<p class="assets-error" role="alert">{{ text }}</p>
+		<app-settings-status kind="error">{{ text }}</app-settings-status>
 	}
-</div>
+</app-settings-block>

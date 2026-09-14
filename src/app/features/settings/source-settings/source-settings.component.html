@@ -1,12 +1,9 @@
-<section class="section">
-	<h2 class="section-title">Источник инвентаря</h2>
-	<p class="section-subtitle">Откуда брать список предметов</p>
-
+<app-settings-panel title="Источник инвентаря" subtitle="Откуда брать список предметов">
 	@if (mode() === 'solo') {
-		<p class="hint">
+		<app-settings-hint>
 			Solo RGG: таблица со списком платформ и игр. Структура колонок фиксированная:
 			Платформа, Игра (название), Статус, Причина, Тег.
-		</p>
+		</app-settings-hint>
 		<tui-textfield class="field">
 			<label>ID таблицы (из адресной строки)</label>
 			<input
@@ -27,17 +24,60 @@
 				placeholder="0"
 			/>
 		</tui-textfield>
-		<tui-textfield class="field">
-			<label>RAWG API-ключ (обложки и скриншоты игр)</label>
-			<input
-				tuiInput
-				#soloRawgKey
-				[value]="sources().sources.solo.rawgApiKey"
-				(input)="updateSolo({ rawgApiKey: soloRawgKey.value })"
-				placeholder="получите на rawg.io/apidocs"
-			/>
-		</tui-textfield>
-		<p class="hint">Таблица должна быть доступна «по ссылке».</p>
+
+		<div class="platforms-block">
+			<h3 class="platforms-title">Платформы хотбара</h3>
+			<app-settings-hint>
+				Выбери платформы — они появятся в хотбаре. Игры для них подтянутся из таблицы.
+			</app-settings-hint>
+			<app-settings-preset-row>
+				@for (platform of soloPlatforms; track platform) {
+					<button
+						tuiButton
+						type="button"
+						size="s"
+						[appearance]="isSoloPlatformSelected(platform) ? 'primary' : 'secondary'"
+						(click)="toggleSoloPlatform(platform)"
+					>
+						{{ platform }}
+					</button>
+				}
+				@for (platform of customSoloPlatforms(); track platform) {
+					<button
+						tuiButton
+						type="button"
+						size="s"
+						appearance="flat"
+						[iconStart]="'@tui.trash'"
+						[attr.aria-label]="'Удалить платформу ' + platform"
+						(click)="removeCustomPlatform(platform)"
+					>
+						{{ platform }}
+					</button>
+				}
+			</app-settings-preset-row>
+			<tui-textfield class="custom-platform-input">
+				<label>Своя платформа</label>
+				<input
+					#customPlatformInput
+					tuiInput
+					[value]="customPlatformValue()"
+					(input)="customPlatformValue.set(customPlatformInput.value)"
+					placeholder="Например: GX4000"
+					(keydown.enter)="addCustomPlatform(customPlatformValue()); customPlatformInput.value = ''; customPlatformValue.set('')"
+				/>
+				<button
+					tuiButton
+					type="button"
+					size="s"
+					[disabled]="!customPlatformValue().trim()"
+					(click)="addCustomPlatform(customPlatformValue()); customPlatformInput.value = ''; customPlatformValue.set('')"
+				>
+					Добавить
+				</button>
+			</tui-textfield>
+		</div>
+		<app-settings-hint>Таблица должна быть доступна «по ссылке».</app-settings-hint>
 	} @else {
 		<button
 			tuiButton
@@ -72,8 +112,8 @@
 						placeholder="bradhi"
 					/>
 				</tui-textfield>
-				<p class="hint">Приложение подхватит инвентарь с твоей страницы rgg.land. Просто впиши ник.</p>
-				<div class="switches">
+				<app-settings-hint>Приложение подхватит инвентарь с твоей страницы rgg.land. Просто впиши ник.</app-settings-hint>
+				<div class="settings-switches">
 					<app-settings-switch
 						label="Типы предметов"
 						hint="Группировать предметы по типам (Оружие, Зелье, Крысиный Предмет и т.д.)"
@@ -127,9 +167,9 @@
 						<input tuiInput #colDescription [value]="sources().sources.sheets.columns.description" (input)="updateSheetColumn('description', colDescription.value)" />
 					</tui-textfield>
 				</div>
-				<p class="hint">
+				<app-settings-hint>
 					Таблица должна быть доступна «по ссылке». Категории: «эффект» → Эффекты, «спецролл» → Спецроллы, остальное → Обычные предметы.
-				</p>
+				</app-settings-hint>
 			}
 			@case ('local') {
 				<tui-textfield class="field">
@@ -142,7 +182,7 @@
 						[max]="10"
 					></textarea>
 				</tui-textfield>
-				<p class="hint">Список предметов в формате JSON. Для продвинутых пользователей.</p>
+				<app-settings-hint>Список предметов в формате JSON. Для продвинутых пользователей.</app-settings-hint>
 			}
 		}
 	}
@@ -160,13 +200,13 @@
 
 	@switch (loadStatus()) {
 		@case ('loading') {
-			<p class="status">Загружаю…</p>
+			<app-settings-status>Загружаю…</app-settings-status>
 		}
 		@case ('ok') {
-			<p class="status status-ok">{{ loadMessage() }}</p>
+			<app-settings-status kind="ok">{{ loadMessage() }}</app-settings-status>
 		}
 		@case ('error') {
-			<p class="status status-error" role="alert">{{ loadMessage() }}</p>
+			<app-settings-status kind="error">{{ loadMessage() }}</app-settings-status>
 		}
 	}
-</section>
+</app-settings-panel>

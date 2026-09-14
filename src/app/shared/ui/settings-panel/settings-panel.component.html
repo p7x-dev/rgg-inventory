@@ -1,0 +1,9 @@
+<section class="settings-panel">
+	@if (title()) {
+		<h2 class="settings-panel-title">{{ title() }}</h2>
+	}
+	@if (subtitle()) {
+		<p class="settings-panel-subtitle">{{ subtitle() }}</p>
+	}
+	<ng-content />
+</section>

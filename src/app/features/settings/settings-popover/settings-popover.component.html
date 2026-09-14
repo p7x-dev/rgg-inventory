@@ -1,37 +1,84 @@
 <div class="popover">
-	<app-settings-header (close)="close.emit()" />
+	<app-settings-header [mode]="mode()" (modeChange)="setMode($event)" (close)="close.emit()" />
+
+	<div class="popover-tabs" role="tablist" aria-label="Уровень настроек">
+		<button
+			tuiButton
+			type="button"
+			size="s"
+			[appearance]="fullMode() ? 'secondary' : 'primary'"
+			role="tab"
+			[attr.aria-selected]="!fullMode()"
+			(click)="fullMode.set(false)"
+		>
+			Базовые
+		</button>
+		<button
+			tuiButton
+			type="button"
+			size="s"
+			[appearance]="fullMode() ? 'primary' : 'secondary'"
+			role="tab"
+			[attr.aria-selected]="fullMode()"
+			(click)="fullMode.set(true)"
+		>
+			Полные
+		</button>
+	</div>
 
 	<div class="popover-content">
-		<app-settings-section title="Режим" [open]="true">
-			<app-mode-settings />
-		</app-settings-section>
+		@if (!fullMode()) {
+			<app-settings-section title="Режим" [open]="true">
+				<app-mode-settings />
+			</app-settings-section>
 
-		<app-settings-section title="Источник инвентаря" [open]="true">
-			<app-source-settings />
-		</app-settings-section>
+			<app-settings-section title="Источник инвентаря" [open]="true">
+				<app-source-settings />
+			</app-settings-section>
 
-		<app-settings-section title="Оверлей">
-			<app-overlay-settings />
-		</app-settings-section>
+			<app-settings-section title="Оверлей" [open]="true">
+				<app-overlay-settings />
+			</app-settings-section>
 
-		<app-settings-section title="Дизайн">
-			<app-theme-settings />
-		</app-settings-section>
+			<app-settings-section
+				title="Приложение"
+				[anchor]="appSectionId"
+				[open]="appSectionOpen()"
+			>
+				<app-app-settings />
+			</app-settings-section>
+		} @else {
+			<app-settings-section title="Режим" [open]="true">
+				<app-mode-settings />
+			</app-settings-section>
 
-		<app-settings-section title="Иконки">
-			<app-icon-settings />
-		</app-settings-section>
+			<app-settings-section title="Источник инвентаря" [open]="true">
+				<app-source-settings />
+			</app-settings-section>
 
-		<app-settings-section title="Таймер">
-			<app-timer-settings />
-		</app-settings-section>
+			<app-settings-section title="Оверлей">
+				<app-overlay-settings />
+			</app-settings-section>
 
-		<app-settings-section
-			title="Приложение"
-			[anchor]="appSectionId"
-			[open]="appSectionOpen()"
-		>
-			<app-app-settings />
-		</app-settings-section>
+			<app-settings-section title="Дизайн">
+				<app-theme-settings />
+			</app-settings-section>
+
+			<app-settings-section title="Иконки">
+				<app-icon-settings />
+			</app-settings-section>
+
+			<app-settings-section title="Таймер">
+				<app-timer-settings />
+			</app-settings-section>
+
+			<app-settings-section
+				title="Приложение"
+				[anchor]="appSectionId"
+				[open]="appSectionOpen()"
+			>
+				<app-app-settings />
+			</app-settings-section>
+		}
 	</div>
 </div>

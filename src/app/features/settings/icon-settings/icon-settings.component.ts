@@ -6,11 +6,31 @@ import { RggIconService } from '@core/services/rgg-icon.service';
 import { IconStore, normalizeIconName } from '@core/stores/icon.store';
 import { InventoryStore } from '@core/stores/inventory.store';
 import { SettingsStore } from '@core/stores/settings.store';
+import { selectedFile } from '@core/utils/file.util';
+import { SettingsActionsComponent } from '@shared/ui/settings-actions/settings-actions.component';
+import { SettingsBlockComponent } from '@shared/ui/settings-block/settings-block.component';
+import { SettingsHintComponent } from '@shared/ui/settings-hint/settings-hint.component';
+import { SettingsPanelComponent } from '@shared/ui/settings-panel/settings-panel.component';
+import { SettingsStatusComponent } from '@shared/ui/settings-status/settings-status.component';
 import { TuiButton, TuiDataList, TuiDropdown, TuiDropdownOpen, TuiIcon, TuiOption, TuiTextfield } from '@taiga-ui/core';
 
 @Component({
 	selector: 'app-icon-settings',
-	imports: [TuiButton, TuiIcon, TuiTextfield, TuiDataList, TuiDropdown, TuiDropdownOpen, TuiOption, KeyValuePipe],
+	imports: [
+		TuiButton,
+		TuiIcon,
+		TuiTextfield,
+		TuiDataList,
+		TuiDropdown,
+		TuiDropdownOpen,
+		TuiOption,
+		KeyValuePipe,
+		SettingsPanelComponent,
+		SettingsBlockComponent,
+		SettingsHintComponent,
+		SettingsActionsComponent,
+		SettingsStatusComponent,
+	],
 	templateUrl: './icon-settings.component.html',
 	styleUrl: './icon-settings.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -84,12 +104,7 @@ export class IconSettingsComponent {
 	}
 
 	protected async onZipSelected(event: Event): Promise<void> {
-		const input = event.target;
-		if (!(input instanceof HTMLInputElement)) {
-			return;
-		}
-		const file = input.files?.[0];
-		input.value = '';
+		const file = selectedFile(event);
 		if (!file) {
 			return;
 		}
@@ -103,12 +118,7 @@ export class IconSettingsComponent {
 	}
 
 	protected async onSingleIconSelected(event: Event): Promise<void> {
-		const input = event.target;
-		if (!(input instanceof HTMLInputElement)) {
-			return;
-		}
-		const file = input.files?.[0];
-		input.value = '';
+		const file = selectedFile(event);
 		if (!file) {
 			return;
 		}

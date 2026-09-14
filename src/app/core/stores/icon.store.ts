@@ -2,6 +2,7 @@ import type { InventoryCategoryId, InventoryEntry } from '@core/models/inventory
 import { inject } from '@angular/core';
 import { rggCategoryIcon, rggItemIcon } from '@core/icons/rgg-icons';
 import { SettingsStore } from '@core/stores/settings.store';
+import { fileToDataUrl } from '@core/utils/file.util';
 import { signalStore, withMethods } from '@ngrx/signals';
 import { unzipSync } from 'fflate';
 
@@ -130,12 +131,3 @@ export const IconStore = signalStore(
 		};
 	}),
 );
-
-function fileToDataUrl(file: File): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader();
-		reader.onload = () => resolve(String(reader.result));
-		reader.onerror = () => reject(new Error('Не удалось прочитать файл'));
-		reader.readAsDataURL(file);
-	});
-}

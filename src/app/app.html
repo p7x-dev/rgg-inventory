@@ -1,5 +1,9 @@
 <tui-root>
-	@if (shell.overlayMode()) {
+	@if (shell.widgetMode(); as widgetId) {
+		<div appThemeHost class="app-widget-page-host">
+			<app-widgets-page [widget]="widgetId" />
+		</div>
+	} @else if (shell.overlayMode()) {
 		<div appThemeHost class="app-overlay-page-host">
 			<app-overlay-page />
 		</div>

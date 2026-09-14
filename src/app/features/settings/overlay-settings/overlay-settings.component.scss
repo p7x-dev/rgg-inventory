@@ -1,19 +1,4 @@
-.section {
-	display: flex;
-	gap: 18px;
-	flex-direction: column;
-	padding: 20px;
-	border-radius: 16px;
-	background: var(--tui-background-neutral-1, rgba(255, 255, 255, 0.05));
-}
-
-.section-title {
-	margin: 0;
-	font-weight: 600;
-	font-size: 16px;
-}
-
-.switches {
+.settings-switches {
 	display: flex;
 	gap: 14px;
 	flex-direction: column;

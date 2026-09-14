@@ -1,0 +1,33 @@
+.widgets-settings {
+	display: flex;
+	gap: 12px;
+	flex-direction: column;
+}
+
+.widget-row {
+	display: flex;
+	gap: 8px;
+	flex-direction: column;
+}
+
+.widget-url {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding-left: 36px;
+}
+
+.widget-url-code {
+	max-width: 100%;
+	overflow: hidden;
+	padding: 4px 8px;
+	border-radius: 6px;
+	background: var(--tui-background-neutral-1, rgba(255, 255, 255, 0.05));
+	font-size: 11px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.widget-url-copy {
+	flex-shrink: 0;
+}

@@ -1,7 +1,5 @@
 import type { TemplateRef } from '@angular/core';
-import type { SlotItem } from '@core/models/overlay.model';
 import type { SoloCategory } from '@core/models/solo.model';
-import type { DesignLayout } from '@core/models/theme.model';
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -29,6 +27,7 @@ import { InventoryStore } from '@core/stores/inventory.store';
 import { SettingsStore } from '@core/stores/settings.store';
 import { SoloStore } from '@core/stores/solo.store';
 import { overlayUrl } from '@core/utils/overlay';
+import { buildOverlayView } from '@core/utils/overlay-view';
 import { TuiButton, TuiDialogService, TuiDropdown, TuiDropdownOpen } from '@taiga-ui/core';
 import { finalize } from 'rxjs';
 
@@ -79,44 +78,31 @@ export class OverlayBarComponent {
 
 	protected readonly soloMode = computed(() => this.settingsStore.mode() === 'solo');
 
-	protected readonly items = computed<SlotItem[]>(() => {
-		return this.inventoryStore.entries().flatMap((category) =>
-			category.entries.map((entry) => ({
-				entry,
-				icon: this.iconStore.resolveIcon(entry),
-				categoryId: category.id,
-			})),
-		);
-	});
+	private readonly view = buildOverlayView(this.settingsStore, this.inventoryStore, this.iconStore, 'Инвентарь');
+
+	protected readonly items = this.view.items;
 
 	protected readonly data = this.inventoryStore.data;
 	protected readonly error = this.inventoryStore.error;
 
 	protected readonly overlaySettings = this.settingsStore.overlay;
 
-	protected readonly designMode = computed(
-		() => this.settingsStore.themePreset() === 'custom' && this.settingsStore.customDesign() !== null,
-	);
+	protected readonly designMode = this.view.designMode;
 
-	protected readonly design = computed<DesignLayout | null>(() =>
-		this.designMode() ? this.settingsStore.customDesign() : null,
-	);
+	protected readonly design = this.view.design;
 
 	protected readonly playerName = computed(() => {
 		if (this.soloMode()) {
 			return this.soloStore.data()?.player || 'Solo RGG';
 		}
-		return (
-			(this.inventoryStore.data()?.player ?? this.settingsStore.settings().sources.rggland.nick) ||
-			'Инвентарь'
-		);
+		return this.view.playerName();
 	});
 
-	protected readonly coins = computed(() => this.inventoryStore.data()?.coins ?? 0);
+	protected readonly coins = this.view.coins;
 
-	protected readonly tears = computed(() => this.inventoryStore.data()?.tears ?? 0);
+	protected readonly tears = this.view.tears;
 
-	protected readonly visibleRows = computed(() => 2);
+	protected readonly visibleRows = this.view.visibleRows;
 
 	protected readonly showCurrencies = computed(() => this.overlaySettings().showCurrencies);
 
@@ -128,8 +114,10 @@ export class OverlayBarComponent {
 
 	protected readonly pipEnabled = computed(() => this.overlaySettings().pipEnabled);
 
-	// Фон бара — тайговский тёмный #222 (как у страницы): блоки внутри выделяются тенями.
-	protected readonly overlayBackground = computed(() => 'var(--inv-bar-bg, #222)');
+	// Фон бара следует за токеном темы; при «прозрачном фоне» — без подложки.
+	protected readonly overlayBackground = computed(() =>
+		this.overlaySettings().transparentBg ? 'transparent' : 'var(--inv-background)',
+	);
 
 	protected readonly barHidden = computed(() => !this.hotkeyStore.barOn());
 

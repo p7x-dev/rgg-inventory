@@ -1,0 +1,7 @@
+<p
+	class="settings-status"
+	[class.settings-status--ok]="kind() === 'ok'"
+	[class.settings-status--error]="kind() === 'error'"
+	[class.settings-status--warn]="kind() === 'warn'"
+	[attr.role]="kind() === 'error' ? 'alert' : null"
+><ng-content /></p>

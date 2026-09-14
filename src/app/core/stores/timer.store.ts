@@ -273,7 +273,7 @@ export const TimerStore = signalStore(
 				const normalizedNick = nick.trim().toLowerCase();
 				const normalizedName = timerName.trim().toLowerCase() || 'main';
 				if (!normalizedNick) {
-					throw new Error('Укажите ник стримера для таймера бота RGG');
+					throw new Error('Укажите ник для таймера бота RGG');
 				}
 				const widget = await lastValueFrom(botWidget$(normalizedNick, normalizedName));
 				setSnapshot(widgetToSnapshot(widget, normalizedName));

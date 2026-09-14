@@ -19,15 +19,15 @@
 		}
 		@if (tooltip()) {
 			<span class="slot-tooltip" role="tooltip">
-				<strong class="slot-tooltip__name">{{ item.entry.name }}</strong>
+				<strong class="slot-tooltip-name">{{ item.entry.name }}</strong>
 				@if (item.entry.quantity && item.entry.quantity > 1) {
-					<span class="slot-tooltip__qty">×{{ quantity() }}</span>
+					<span class="slot-tooltip-qty">×{{ quantity() }}</span>
 				}
 				@if (item.entry.description) {
-					<span class="slot-tooltip__desc">{{ item.entry.description }}</span>
+					<span class="slot-tooltip-desc">{{ item.entry.description }}</span>
 				}
 				@if (item.entry.note) {
-					<span class="slot-tooltip__note">{{ item.entry.note }}</span>
+					<span class="slot-tooltip-note">{{ item.entry.note }}</span>
 				}
 			</span>
 		}

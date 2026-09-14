@@ -122,24 +122,24 @@
 	visibility: visible;
 }
 
-.slot-tooltip__name {
+.slot-tooltip-name {
 	font-weight: 700;
 	font-size: 1.05em;
 	white-space: nowrap;
 }
 
-.slot-tooltip__qty {
+.slot-tooltip-qty {
 	margin-left: 4px;
 	color: var(--inv-accent);
 	font-weight: 700;
 }
 
-.slot-tooltip__desc {
+.slot-tooltip-desc {
 	white-space: normal;
 	opacity: 0.85;
 }
 
-.slot-tooltip__note {
+.slot-tooltip-note {
 	font-style: italic;
 	white-space: normal;
 	opacity: 0.7;

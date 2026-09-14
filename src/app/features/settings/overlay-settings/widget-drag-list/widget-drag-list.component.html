@@ -1,0 +1,26 @@
+<div class="widget-drag">
+	<ul class="widget-drag-list">
+		@for (item of items(); track item.id; let index = $index) {
+			<li
+				class="widget-drag-item"
+				[draggable]="true"
+				(dragstart)="onDragStart($event, index)"
+				(dragover)="onDragOver($event)"
+				(drop)="onDrop($event, index)"
+			>
+				<tui-icon icon="@tui.ellipsis-vertical" class="widget-drag-handle" />
+				<span class="widget-drag-label">{{ item.label }}</span>
+			</li>
+		}
+	</ul>
+	<button
+		tuiButton
+		type="button"
+		appearance="flat"
+		size="s"
+		iconStart="@tui.rotate-ccw"
+		(click)="reset.emit()"
+	>
+		Сбросить порядок
+	</button>
+</div>

@@ -37,3 +37,8 @@ pnpm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+# generated from .env
+src/environments/
+
+# локальные таблицы стримера
+*.xlsx

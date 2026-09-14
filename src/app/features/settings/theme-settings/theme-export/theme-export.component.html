@@ -1,11 +1,10 @@
-<div class="export-block">
-	<h3 class="export-title">Экспорт темы</h3>
-	<p class="export-hint">
-		Сохраните тему: файл CSS для OBS или zip-архив целиком (дизайн + шрифт + токены) для стримера.
-	</p>
-	<div class="export-row">
+<app-settings-block title="Экспорт темы">
+	<app-settings-hint>
+		Сохраните тему: файл CSS для OBS или zip-архив целиком (дизайн + шрифт + токены).
+	</app-settings-hint>
+	<app-settings-actions>
 		<tui-textfield class="export-nick">
-			<label>Ник стримера</label>
+			<label>Ник</label>
 			<input
 				#nickInput
 				tuiInput
@@ -19,8 +18,8 @@
 				Взять {{ suggestedNick() }}
 			</button>
 		}
-	</div>
-	<div class="export-formats" role="radiogroup" aria-label="Формат">
+	</app-settings-actions>
+	<app-settings-preset-row role="radiogroup" aria-label="Формат">
 		@for (format of exportFormats; track format.id) {
 			<button
 				tuiButton
@@ -31,25 +30,24 @@
 				{{ format.label }}
 			</button>
 		}
-	</div>
-	<div class="export-filenames">
-		<span>Файл: <code>{{ exportFileName() }}</code></span>
-	</div>
-	<div class="export-actions">
+	</app-settings-preset-row>
+	<p class="export-filenames">
+		Файл: <code>{{ exportFileName() }}</code>
+	</p>
+	<app-settings-actions>
 		<button tuiButton type="button" [iconStart]="'@tui.download'" (click)="exportTheme()">
 			Скачать {{ exportFormat() }}
 		</button>
 		<button tuiButton type="button" [iconStart]="'@tui.archive'" (click)="exportZip()">
 			Скачать zip
 		</button>
-	</div>
-</div>
+	</app-settings-actions>
+</app-settings-block>
 
-<div class="import-block">
-	<h3 class="import-title">Импорт темы</h3>
-	<p class="import-hint">
+<app-settings-block title="Импорт темы">
+	<app-settings-hint>
 		Загрузите файл темы (.css/.scss/.sass/.less/.styl) или архив (.zip) — он будет применён.
-	</p>
+	</app-settings-hint>
 	<label class="import-upload">
 		<input
 			#themeFile
@@ -63,9 +61,9 @@
 		</button>
 	</label>
 	@if (importError(); as message) {
-		<p class="design-error" role="alert">{{ message }}</p>
+		<app-settings-status kind="error">{{ message }}</app-settings-status>
 	}
 	@if (importMessage(); as message) {
-		<p class="import-ok">{{ message }}</p>
+		<app-settings-status kind="ok">{{ message }}</app-settings-status>
 	}
-</div>
+</app-settings-block>

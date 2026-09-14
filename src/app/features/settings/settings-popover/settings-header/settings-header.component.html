@@ -1,6 +1,7 @@
 <header class="popover-header">
 	<tui-icon icon="@tui.settings" class="popover-header-icon" />
 	<h2 class="popover-header-title">Настройки</h2>
+	<app-mode-switch [mode]="mode()" (modeChange)="modeChange.emit($event)" />
 	<button
 		tuiButton
 		type="button"

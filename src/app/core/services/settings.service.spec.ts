@@ -68,6 +68,26 @@ describe('parseSettings', () => {
 		expect(settings.customDesign).toBeNull();
 		expect(settings.icons).toEqual({});
 	});
+
+	it('читает выбранные платформы соло-хотбара и отбрасывает незнакомые', () => {
+		const settings = parseSettings(
+			JSON.stringify({
+				sources: {
+					solo: { platforms: ['NES', 'PS1', 'Неизвестная', 42] },
+				},
+			}),
+		);
+		expect(settings.sources.solo.platforms).toEqual(['NES', 'PS1']);
+	});
+
+	it('по умолчанию соло-хотбар пуст', () => {
+		const settings = parseSettings(
+			JSON.stringify({
+				sources: { solo: { spreadsheetId: 'abc', gid: '0' } },
+			}),
+		);
+		expect(settings.sources.solo.platforms).toEqual([]);
+	});
 });
 
 describe('parseEnvelope', () => {

@@ -1,6 +1,4 @@
-<section class="section">
-	<h2 class="section-title">Оверлей</h2>
-
+<app-settings-panel title="Оверлей">
 	<app-settings-slider
 		label="Сколько слотов в ряду"
 		[value]="overlay().cols"
@@ -36,7 +34,23 @@
 		(valueChange)="setRefreshInterval($event)"
 	/>
 
-	<div class="switches">
+	<app-settings-block title="Виджеты">
+		<app-settings-hint>
+			Каждый включённый виджет — отдельный блок оверлея для OBS. Скопируй его URL
+			и добавь в OBS как браузерный источник. Не включённые виджеты в отдельном
+			окне не показываются. Порядок блоков — списком ниже.
+		</app-settings-hint>
+		<app-widgets-settings [widgets]="overlay().widgets" (widgetsChange)="setWidgets($event)" />
+
+		<h3 class="settings-block-title">Порядок виджетов</h3>
+		<app-widget-drag-list
+			[order]="overlay().widgetOrder"
+			(orderChange)="setWidgetOrder($event)"
+			(reset)="resetWidgetOrder()"
+		/>
+	</app-settings-block>
+
+	<div class="settings-switches">
 		<app-settings-switch
 			label="Прозрачный фон"
 			hint="Убери фон целиком — виден только сам бар. Нужно для OBS."
@@ -88,4 +102,4 @@
 			</button>
 		}
 	</div>
-</section>
+</app-settings-panel>

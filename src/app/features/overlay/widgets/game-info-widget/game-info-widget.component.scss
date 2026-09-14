@@ -1,0 +1,67 @@
+.game-info {
+	display: flex;
+	gap: 8px;
+	flex-direction: column;
+	min-width: 200px;
+	max-width: 320px;
+	padding: 10px 12px;
+	border: var(--inv-slot-border-width) solid var(--inv-slot-border-color);
+	border-radius: var(--inv-border-radius);
+	background-color: var(--inv-slot-bg);
+	color: var(--inv-text);
+}
+
+.game-info-header {
+	display: flex;
+	gap: 8px;
+	flex-direction: column;
+}
+
+.game-info-platform {
+	font-weight: 800;
+	font-size: 11px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	opacity: 0.7;
+}
+
+.game-info-name {
+	overflow: hidden;
+	font-weight: 700;
+	font-size: 14px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.game-info-cover {
+	width: 100%;
+	max-height: 160px;
+	border-radius: 8px;
+	object-fit: cover;
+}
+
+.game-info-description {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 6;
+	overflow: hidden;
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.45;
+	opacity: 0.9;
+}
+
+.game-info-link {
+	align-self: flex-start;
+	font-size: 11px;
+}
+
+.game-info-status {
+	margin: 0;
+	font-size: 12px;
+	opacity: 0.7;
+}
+
+.is-error {
+	color: #ffb3b3;
+}

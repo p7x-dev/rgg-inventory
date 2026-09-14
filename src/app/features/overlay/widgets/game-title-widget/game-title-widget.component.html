@@ -1,0 +1,12 @@
+<div class="title" #host>
+	@if (overflow()) {
+		<span class="track track--marquee" [style.animation-duration]="scrollDuration()">
+			<span class="track-text">{{ full() }}</span>
+			<span class="track-text" aria-hidden="true">{{ full() }}</span>
+		</span>
+	} @else {
+		<span class="track">
+			<span class="track-text">{{ full() }}</span>
+		</span>
+	}
+</div>

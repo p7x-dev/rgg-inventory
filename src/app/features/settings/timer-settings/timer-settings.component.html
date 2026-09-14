@@ -1,13 +1,10 @@
-<section class="section">
-	<h2 class="section-title">Таймер</h2>
-
-	<div class="block">
-		<h3 class="block-title">Локальный таймер</h3>
+<app-settings-panel title="Таймер">
+	<app-settings-block title="Локальный таймер">
 		<tui-textfield class="field">
 			<label>Имя таймера</label>
 			<input #localName tuiInput [value]="timer().timer.localName" (input)="setLocalName(localName.value)" />
 		</tui-textfield>
-		<p class="hint">Во время отсчёта цифры подсвечиваются акцентным цветом темы.</p>
+		<app-settings-hint>Во время отсчёта цифры подсвечиваются акцентным цветом темы.</app-settings-hint>
 		<div class="timer-preview">
 			<span
 				class="timer-preview-time"
@@ -15,28 +12,28 @@
 				[style.font-family]="'var(--inv-timer-font)'"
 			>{{ formatted() }}</span>
 		</div>
-		<div class="actions">
+		<app-settings-actions>
 			<button tuiButton type="button" [iconStart]="snapshot().running ? '@tui.pause' : '@tui.play'" (click)="toggle()">
 				{{ snapshot().running ? 'Пауза' : 'Старт' }}
 			</button>
 			<button tuiButton type="button" appearance="flat" [iconStart]="'@tui.rotate-ccw'" (click)="reset()">
 				Сброс
 			</button>
-		</div>
+		</app-settings-actions>
 
-		<h3 class="block-title">Как считать время</h3>
-		<p class="hint">Вперёд (от нуля) или обратный отсчёт от заданного времени.</p>
-		<div class="preset-row">
+		<h3 class="settings-block-title">Как считать время</h3>
+		<app-settings-hint>Вперёд (от нуля) или обратный отсчёт от заданного времени.</app-settings-hint>
+		<app-settings-preset-row>
 			<button tuiButton type="button" [appearance]="timer().timer.mode === 'elapsed' ? 'primary' : 'secondary'" (click)="setMode('elapsed')">
 				Вперёд (секундомер)
 			</button>
 			<button tuiButton type="button" [appearance]="timer().timer.mode === 'countdown' ? 'primary' : 'secondary'" (click)="setMode('countdown')">
 				Обратный отсчёт
 			</button>
-		</div>
+		</app-settings-preset-row>
 		@if (timer().timer.mode === 'countdown') {
 			<div class="countdown">
-				<p class="hint">Сколько ставить на таймере: настраивается часами, минутами и секундами.</p>
+				<app-settings-hint>Сколько ставить на таймере: настраивается часами, минутами и секундами.</app-settings-hint>
 				<div class="countdown-fields">
 					<tui-textfield class="countdown-field">
 						<label>Часы</label>
@@ -66,19 +63,18 @@
 						/>
 					</tui-textfield>
 				</div>
-				<div class="actions">
+				<app-settings-actions>
 					<button tuiButton type="button" appearance="flat" [iconStart]="'@tui.play'" (click)="useCountdownNow()">
 						Запустить с начала
 					</button>
-				</div>
+				</app-settings-actions>
 			</div>
 		}
-	</div>
+	</app-settings-block>
 
-	<div class="block">
-		<h3 class="block-title">Как показывать время</h3>
-		<p class="hint">Выбери, какие части отображать: часы, минуты, секунды.</p>
-		<div class="preset-row">
+	<app-settings-block title="Как показывать время">
+		<app-settings-hint>Выбери, какие части отображать: часы, минуты, секунды.</app-settings-hint>
+		<app-settings-preset-row>
 			@for (preset of presets; track preset.id) {
 				<button
 					tuiButton
@@ -89,7 +85,7 @@
 					{{ preset.label }}
 				</button>
 			}
-		</div>
+		</app-settings-preset-row>
 		@for (part of partLabels; track part.key) {
 			<app-settings-switch
 				[label]="part.label"
@@ -97,14 +93,13 @@
 				(checkedChange)="setPart(part.key, $event)"
 			/>
 		}
-	</div>
+	</app-settings-block>
 
-	<div class="block">
-		<h3 class="block-title">Синхронизация с ботом RGG</h3>
-		<p class="hint">
+	<app-settings-block title="Синхронизация с ботом RGG">
+		<app-settings-hint>
 			Если у тебя запущен бот RGG и таймеры на канале — можно синхронизировать
 			и показывать одинаковый таймер с ботом в реальном времени.
-		</p>
+		</app-settings-hint>
 		<app-settings-switch
 			label="Синхронизировать с ботом RGG"
 			[checked]="timer().timer.bot.enabled"
@@ -112,26 +107,26 @@
 		/>
 		@if (timer().timer.bot.enabled) {
 			<tui-textfield class="field">
-				<label>Ник стримера</label>
+				<label>Ник</label>
 				<input #botNick tuiInput [value]="timer().timer.bot.nick" (input)="setBotNick(botNick.value)" placeholder="bradhi" />
 			</tui-textfield>
 			<tui-textfield class="field">
 				<label>Имя таймера</label>
 				<input #botTimerName tuiInput [value]="timer().timer.bot.timerName" (input)="setBotTimerName(botTimerName.value)" placeholder="main" />
 			</tui-textfield>
-			<div class="actions">
+			<app-settings-actions>
 				<button tuiButton type="button" [iconStart]="'@tui.link'" [disabled]="syncStatus() === 'loading'" (click)="syncBot()">
 					Синхронизировать
 				</button>
-			</div>
+			</app-settings-actions>
 			@switch (syncStatus()) {
 				@case ('ok') {
-					<p class="status-ok">{{ syncMessage() }}</p>
+					<app-settings-status kind="ok">{{ syncMessage() }}</app-settings-status>
 				}
 				@case ('error') {
-					<p class="status-error" role="alert">{{ syncMessage() }}</p>
+					<app-settings-status kind="error">{{ syncMessage() }}</app-settings-status>
 				}
 			}
 		}
-	</div>
-</section>
+	</app-settings-block>
+</app-settings-panel>

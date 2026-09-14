@@ -2,11 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { type ReleaseArtifact, releaseOsLabel } from '@core/models/release.model';
 import { ReleaseStore } from '@core/stores/release.store';
 import { APP_VERSION } from '@core/version';
+import { SettingsHintComponent } from '@shared/ui/settings-hint/settings-hint.component';
+import { SettingsPanelComponent } from '@shared/ui/settings-panel/settings-panel.component';
+import { SettingsStatusComponent } from '@shared/ui/settings-status/settings-status.component';
 import { TuiButton } from '@taiga-ui/core';
 
 @Component({
 	selector: 'app-app-settings',
-	imports: [TuiButton],
+	imports: [TuiButton, SettingsPanelComponent, SettingsHintComponent, SettingsStatusComponent],
 	templateUrl: './app-settings.component.html',
 	styleUrl: './app-settings.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,

@@ -117,6 +117,8 @@ export class HotbarComponent {
 			this.persistSlots(next);
 		});
 
+		// Подъём хотбара над backdrop-ом диалога: drag начинается в попапе
+		// (CDK overlay), поэтому старт/конец перетаскивания слушаем на document.
 		const onDragStart = (event: DragEvent): void => {
 			if (!dragInProgress(event)) {
 				return;
@@ -130,42 +132,57 @@ export class HotbarComponent {
 			this.dragOverIndex.set(null);
 		};
 
-		const onDragOver = (event: DragEvent): void => {
-			if (!dragInProgress(event)) {
-				return;
-			}
-			event.preventDefault();
-			this.dragOverIndex.set(this.slotIndexAt(event.clientX, event.clientY));
-		};
-
-		const onDrop = (event: DragEvent): void => {
-			if (!dragInProgress(event)) {
-				return;
-			}
-			event.preventDefault();
-			const payload = decodeHotbarDrag(event.dataTransfer);
-			this.dragFrame.set(null);
-			this.dragOverIndex.set(null);
-			if (!payload) {
-				return;
-			}
-			const index = this.slotIndexAt(event.clientX, event.clientY);
-			if (index !== null) {
-				this.setSlot(index, payload);
-			}
-		};
-
 		document.addEventListener('dragstart', onDragStart);
 		document.addEventListener('dragend', onDragEnd);
-		document.addEventListener('dragover', onDragOver);
-		document.addEventListener('drop', onDrop);
+
+		// Попадание в слоты слушаем на самом хотбаре: события dragover/drop
+		// всплывают от слотов к host, а document-level перехваты (CDK overlay
+		// диалога, backdrop) их не крадут.
+		const hostElement = this.host.nativeElement;
+		hostElement.addEventListener('dragover', this.onDragOver);
+		hostElement.addEventListener('drop', this.onDrop);
+		hostElement.addEventListener('dragleave', this.onDragLeave);
+
 		destroyRef.onDestroy(() => {
 			document.removeEventListener('dragstart', onDragStart);
 			document.removeEventListener('dragend', onDragEnd);
-			document.removeEventListener('dragover', onDragOver);
-			document.removeEventListener('drop', onDrop);
+			hostElement.removeEventListener('dragover', this.onDragOver);
+			hostElement.removeEventListener('drop', this.onDrop);
+			hostElement.removeEventListener('dragleave', this.onDragLeave);
 		});
 	}
+
+	/** Подсветка слота под курсором во время перетаскивания. */
+	protected onDragOver = (event: DragEvent): void => {
+		if (!dragInProgress(event)) {
+			return;
+		}
+		event.preventDefault();
+		this.dragOverIndex.set(this.slotIndexAt(event.clientX, event.clientY));
+	};
+
+	/** Сброс подсветки при уходе курсора с хотбара. */
+	protected onDragLeave = (): void => {
+		this.dragOverIndex.set(null);
+	};
+
+	/** Приём предмета в слот. */
+	protected onDrop = (event: DragEvent): void => {
+		if (!dragInProgress(event)) {
+			return;
+		}
+		event.preventDefault();
+		const payload = decodeHotbarDrag(event.dataTransfer);
+		this.dragFrame.set(null);
+		this.dragOverIndex.set(null);
+		if (!payload) {
+			return;
+		}
+		const index = this.slotIndexAt(event.clientX, event.clientY);
+		if (index !== null) {
+			this.setSlot(index, payload);
+		}
+	};
 
 	/** Индекс слота хотбара под указанными координатами; null — вне хотбара. */
 	private slotIndexAt(clientX: number, clientY: number): number | null {

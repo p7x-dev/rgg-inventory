@@ -5,7 +5,13 @@ import { DesignImageService } from '@core/design/design-image.service';
 import { SettingsStore } from '@core/stores/settings.store';
 import { ThemeStore } from '@core/stores/theme.store';
 import { tokenColorPip } from '@core/theme/color.util';
+import { selectedFile } from '@core/utils/file.util';
+import { SettingsActionsComponent } from '@shared/ui/settings-actions/settings-actions.component';
+import { SettingsBlockComponent } from '@shared/ui/settings-block/settings-block.component';
+import { SettingsHintComponent } from '@shared/ui/settings-hint/settings-hint.component';
+import { SettingsPanelComponent } from '@shared/ui/settings-panel/settings-panel.component';
 import { SettingsSliderComponent } from '@shared/ui/settings-slider/settings-slider.component';
+import { SettingsStatusComponent } from '@shared/ui/settings-status/settings-status.component';
 import { SettingsSwitchComponent } from '@shared/ui/settings-switch/settings-switch.component';
 import { TuiButton, TuiTextfield } from '@taiga-ui/core';
 import { DesignEditorComponent } from './design-editor/design-editor.component';
@@ -29,6 +35,11 @@ interface NumericTokenDef {
 		DesignEditorComponent,
 		SettingsSliderComponent,
 		SettingsSwitchComponent,
+		SettingsPanelComponent,
+		SettingsBlockComponent,
+		SettingsHintComponent,
+		SettingsActionsComponent,
+		SettingsStatusComponent,
 		ThemeAssetsComponent,
 		ThemeExportComponent,
 		ThemePresetsComponent,
@@ -148,12 +159,7 @@ export class ThemeSettingsComponent {
 	}
 
 	protected async onDesignFileSelected(event: Event): Promise<void> {
-		const input = event.target;
-		if (!(input instanceof HTMLInputElement)) {
-			return;
-		}
-		const file = input.files?.[0];
-		input.value = '';
+		const file = selectedFile(event);
 		if (!file) {
 			return;
 		}

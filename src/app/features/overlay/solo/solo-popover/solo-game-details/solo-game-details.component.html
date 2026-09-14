@@ -1,0 +1,119 @@
+<section class="details">
+	<header class="details-header">
+		<button
+			tuiButton
+			type="button"
+			appearance="flat"
+			iconStart="@tui.arrow-left"
+			class="details-back"
+			aria-label="Назад к списку"
+			(click)="back.emit()"
+		></button>
+		<h2 class="details-title">{{ row().game }}</h2>
+		<button
+			tuiButton
+			type="button"
+			appearance="flat"
+			iconStart="@tui.x"
+			class="details-close"
+			aria-label="Закрыть"
+			(click)="close.emit()"
+		></button>
+	</header>
+
+	<div class="details-body">
+		@if (isCurrent()) {
+			<span class="game-badge">сейчас</span>
+		}
+
+		<span
+			class="details-action"
+			[class.is-completed]="row().action === 'completed'"
+			[class.is-skip]="row().action === 'skip'"
+			[class.is-reroll]="row().action === 'reroll'"
+		>{{ actionLabel[row().action] }}</span>
+
+		@if (gameInfo(); as info) {
+			@if (info.loading) {
+				<p class="rawg-status">Ищу информацию…</p>
+			} @else if (info.error) {
+				<p class="rawg-status is-error">{{ info.error }}</p>
+			} @else {
+				@if (info.wiki; as wiki) {
+					@if (wiki.thumbnail) {
+						<img class="rawg-cover" [src]="wiki.thumbnail" alt="Обложка {{ wiki.title }}" loading="lazy" />
+					}
+
+					@if (wiki.extract) {
+						<div class="details-block">
+							<span class="details-label">Об игре</span>
+							<p class="details-row">{{ wiki.extract }}</p>
+						</div>
+					}
+
+					<a
+						tuiLink
+						class="wiki-link"
+						[href]="wiki.pageUrl"
+						target="_blank"
+						rel="noopener"
+					>
+						{{ wiki.title }} — читать на Википедии
+					</a>
+				} @else if (info.detail; as detail) {
+					@if (detail.background_image) {
+						<img class="rawg-cover" [src]="detail.background_image" alt="Обложка {{ detail.name }}" loading="lazy" />
+					}
+
+					<div class="rawg-meta">
+						@if (detail.rating > 0) {
+							<span class="rawg-rating">{{ detail.rating.toFixed(1) }}</span>
+						}
+						@if (detail.released) {
+							<span class="rawg-released">{{ detail.released }}</span>
+						}
+					</div>
+
+					@if (detail.genres.length > 0) {
+						<div class="rawg-chips">
+							@for (genre of detail.genres; track genre) {
+								<span class="rawg-chip">{{ genre }}</span>
+							}
+						</div>
+					}
+
+					@if (detail.platforms.length > 0) {
+						<div class="rawg-chips is-muted">
+							@for (platform of detail.platforms; track platform) {
+								<span class="rawg-chip">{{ platform }}</span>
+							}
+						</div>
+					}
+
+					@if (detail.description) {
+						<div class="details-block">
+							<span class="details-label">Об игре</span>
+							<p class="details-row">{{ detail.description }}</p>
+						</div>
+					}
+				} @else {
+					<p class="rawg-status">Не удалось найти информацию об игре</p>
+				}
+			}
+		}
+
+		@if (row().reason) {
+			<div class="details-block">
+				<span class="details-label">Причина</span>
+				<p class="details-row">{{ row().reason }}</p>
+			</div>
+		}
+
+		@if (row().description) {
+			<div class="details-block">
+				<span class="details-label">Описание</span>
+				<p class="details-row">{{ row().description }}</p>
+			</div>
+		}
+	</div>
+</section>

@@ -1,23 +1,46 @@
-<div class="solo-bar" [style.--inv-cols]="categories().length || 1">
+<div class="solo-bar">
 	@if (error(); as message) {
 		<div class="solo-error" role="alert">{{ message }}</div>
 	}
 
-	@if (!categories().length) {
+	@if (!tableCategories().length && !customCategories().length) {
 		<div class="solo-empty">
 			@if (loading()) {
 				<span>Загрузка Solo-таблицы…</span>
 			} @else {
-				<span>Таблица пуста — добавьте платформы и игры</span>
+				<span>Платформы появятся из таблицы; свои — по кнопке «+»</span>
 			}
 		</div>
 	}
 
-	@for (category of categories(); track category.platform) {
-		<app-solo-platform-slot
-			class="solo-slot"
-			[category]="category"
-			(activate)="platformSelect.emit(category)"
-		/>
+	@if (tableCategories().length > 0) {
+		<div class="solo-row" [style.--inv-cols]="tableCategories().length">
+			@for (category of tableCategories(); track category.platform) {
+				<app-solo-platform-slot
+					class="solo-slot"
+					[category]="category"
+					(activate)="platformSelect.emit(category)"
+				/>
+			}
+		</div>
+	}
+
+	@if (customCategories().length > 0 || addOptions.length > 0) {
+		<div class="solo-row" [style.--inv-cols]="customCategories().length + 1">
+			@for (category of customCategories(); track category.platform) {
+				<app-solo-platform-slot
+					class="solo-slot"
+					[category]="category"
+					[removable]="true"
+					(remove)="removeCustomPlatform(category.platform)"
+					(activate)="platformSelect.emit(category)"
+				/>
+			}
+			<app-solo-add-platform
+				class="solo-slot"
+				[platforms]="addOptions"
+				(platformAdd)="addCustomPlatform($event)"
+			/>
+		</div>
 	}
 </div>
